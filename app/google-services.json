@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "645924152071",
+    "firebase_url": "https://weather2-b2bc4-default-rtdb.firebaseio.com",
+    "project_id": "weather2-b2bc4",
+    "storage_bucket": "weather2-b2bc4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645924152071:android:a3c9bb10806b5be8e75ba2",
+        "android_client_info": {
+          "package_name": "com.example.weather2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIOf99ki8ZzrAiNpcZZ9S2XfbqRFDaKAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
