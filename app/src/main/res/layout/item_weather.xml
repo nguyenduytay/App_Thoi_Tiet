@@ -73,10 +73,14 @@
             android:layout_gravity="center"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="64%"
+            android:shadowColor="#000000"
 
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="6"
+            android:text="64%"
             android:textAlignment="center"
-            android:textColor="#C8B7B7"
+            android:textColor="#FBFAFA"
             android:textSize="14sp" />
         <ImageView
             android:layout_width="25dp"

@@ -7,15 +7,15 @@
     android:layout_marginTop="15dp"
     android:layout_marginRight="8dp"
     android:background="@drawable/forecast_bg"
+    android:backgroundTint="#98C0EE"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -95,13 +95,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -181,13 +181,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -267,13 +267,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -353,13 +353,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -439,13 +439,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"
@@ -525,13 +525,13 @@
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="5dp"
         android:layout_marginTop="20dp"
-        >
+        android:orientation="horizontal"
+        android:padding="5dp">
 
         <TextView
             android:layout_width="117dp"

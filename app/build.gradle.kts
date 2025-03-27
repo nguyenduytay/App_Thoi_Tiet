@@ -54,7 +54,7 @@ dependencies {
     implementation("com.github.Dimezis:BlurView:version-2.0.6")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
-//cài đặt layout load
+    //cài đặt layout load
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // add realtime database
@@ -82,5 +82,10 @@ dependencies {
 
     // Thêm Firebase App Check nếu thiếu
     implementation("com.google.firebase:firebase-appcheck-playintegrity:16.0.0")
+
+     //xây dựng giao diện theo phong cách Material Design
+    implementation("com.google.android.material:material:1.12.0")
+
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
 
 }

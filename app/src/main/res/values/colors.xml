@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="color_weather_background">#4C7EB9</color>
+    <color name="color_sun_high">#E0E339</color>
+    <color name="color_sun_low">#DD55D0</color>
+    <color name="color_notification">#D50E25</color>
+    <color name="color_menu">#0C0F28</color>
+    <color name="color_menu_icon_click">#007CF8</color>
+    <color name="color_menu_icon_no_click">#FFFFFF</color>
 </resources>
