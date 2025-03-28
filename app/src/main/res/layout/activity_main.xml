@@ -6,44 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
-<!--    <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--        android:id="@+id/main_header"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:layout_weight="0.2"-->
-<!--        android:background="#0C0F28">-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/textView4"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginStart="16dp"-->
-<!--            android:layout_marginTop="40dp"-->
-<!--            android:shadowColor="#000000"-->
-<!--            android:shadowDx="4"-->
-<!--            android:shadowDy="4"-->
-<!--            android:shadowRadius="6"-->
-<!--            android:text="Hệ Thống"-->
-<!--            android:textColor="#FFFFFF"-->
-<!--            android:textSize="30sp"-->
-<!--            android:textStyle="bold"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="parent" />-->
-
-<!--        <ImageView-->
-<!--            android:id="@+id/imageView3"-->
-<!--            android:layout_width="50dp"-->
-<!--            android:layout_height="50dp"-->
-<!--            android:layout_marginTop="40dp"-->
-<!--            android:layout_marginEnd="16dp"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="parent"-->
-<!--            app:srcCompat="@drawable/notifications"-->
-<!--            app:tint="@color/color_notification" />-->
-
-<!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

@@ -8,7 +8,7 @@
     android:layout_marginTop="5dp"
     android:layout_marginRight="8dp"
     android:background="@drawable/forecast_bg"
-    android:backgroundTint="#98C0EE">
+    android:backgroundTint="#2E67A8">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewWeatherHour"

@@ -6,7 +6,6 @@ import androidx.viewpager2.widget.ViewPager2
 
 private const val MIN_SCALE = 0.75f
 
-@RequiresApi(21)
 class DepthPageTransformer : ViewPager2.PageTransformer {
 
     override fun transformPage(view: View, position: Float) {

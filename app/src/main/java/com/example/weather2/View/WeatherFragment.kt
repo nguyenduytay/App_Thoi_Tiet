@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.weather2.Model.FirebaseRepository
 import com.example.weather2.Model.WeatherData
 import com.example.weather2.R
 import com.example.weather2.ViewModel.WeatherAdapter
@@ -38,9 +39,10 @@ class WeatherFragment : Fragment() {
         bindingDayWeather=DayWeatherBinding.bind(bindingFragmentWeather.includeDayWeather.dayWeather)
         getDayEndTime()
         setupRecyclerView()
+        updateWeather()
         return bindingFragmentWeather.root
     }
-    //hàm cập nhật thười gian thực
+    //hàm cập nhật thời gian thực
     private fun getDayEndTime()
     {
         lifecycleScope.launch {
@@ -91,6 +93,15 @@ class WeatherFragment : Fragment() {
         bindingHourWeather.recyclerViewWeatherHour.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = WeatherAdapter(weatherList)
+        }
+    }
+    //sự kiện cập nhật thời tiết thay đổi liên tục
+    private fun updateWeather()
+    {
+        FirebaseRepository.addListener {
+            weatherData ->
+            bindingFragmentWeather.tvTempHourLive.text=weatherData.temperature.toString().plus(" ℃")
+            bindingFragmentWeather.tvHumidyHourLive1.text=weatherData.humidity.toString().plus(" %")
         }
     }
 }

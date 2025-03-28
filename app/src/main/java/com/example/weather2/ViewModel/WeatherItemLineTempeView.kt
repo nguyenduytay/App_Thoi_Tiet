@@ -8,7 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import kotlin.math.abs
 
-class WeatherItemView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
+class WeatherItemLineTempeView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private var value: Int = 0
     private var valueAfter: Int=0
     private var valueBefore: Int=0

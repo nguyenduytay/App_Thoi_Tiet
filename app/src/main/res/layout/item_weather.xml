@@ -14,6 +14,8 @@
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="10dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:shadowColor="@color/black"
         android:shadowDx="3"
         android:shadowDy="3"
@@ -21,11 +23,8 @@
         android:text="10:00"
         android:textAlignment="center"
         android:textColor="@color/white"
-        android:textSize="16sp"
-        android:maxLines="2"
-        android:ellipsize="end"
-        android:textStyle="bold"
-        />
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
     <ImageView
         android:id="@+id/iv_WeatherIcon"
@@ -41,21 +40,21 @@
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:shadowColor="@color/black"
         android:shadowDx="4"
         android:shadowDy="4"
         android:shadowRadius="6"
         android:text="23°"
-        android:textStyle="bold"
         android:textAlignment="center"
         android:textColor="@color/white"
-        android:textSize="24sp"
-        android:maxLines="2"
-        android:ellipsize="end"/>
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <!-- Biểu đồ nhiệt độ -->
-    <com.example.weather2.ViewModel.WeatherItemView
-        android:id="@+id/WeatherItemView"
+    <com.example.weather2.ViewModel.WeatherItemLineTempeView
+        android:id="@+id/WeatherItemLineTempeView"
         android:layout_width="70dp"
         android:layout_height="50dp" />
 
@@ -81,7 +80,7 @@
             android:text="64%"
             android:textAlignment="center"
             android:textColor="#FBFAFA"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"

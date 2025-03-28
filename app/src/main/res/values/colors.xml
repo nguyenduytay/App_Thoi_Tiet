@@ -6,7 +6,11 @@
     <color name="color_sun_high">#E0E339</color>
     <color name="color_sun_low">#DD55D0</color>
     <color name="color_notification">#D50E25</color>
-    <color name="color_menu">#0C0F28</color>
+    <color name="color_menu">#565D95</color>
     <color name="color_menu_icon_click">#007CF8</color>
     <color name="color_menu_icon_no_click">#FFFFFF</color>
+    <color name="color_system_temp_seekbar_progress">#D52B2B</color>
+    <color name="color_system_humidity_air_seekbar_progress">#2B75D5</color>
+    <color name="color_system_humidity_land_seekbar_progress">#866DCA</color>
+    <color name="color_system_temp_time_progress">#E7C459</color>
 </resources>

@@ -7,11 +7,11 @@
     android:layout_marginTop="15dp"
     android:layout_marginRight="8dp"
     android:background="@drawable/forecast_bg"
-    android:backgroundTint="#98C0EE"
+    android:backgroundTint="#2E67A8"
     android:orientation="vertical">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -29,13 +29,12 @@
             android:shadowRadius="6"
             android:text="Hôm nay"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -44,13 +43,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -59,18 +58,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -86,18 +85,18 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -115,13 +114,12 @@
             android:shadowRadius="6"
             android:text="Thứ hai"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -130,13 +128,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -145,18 +143,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -172,18 +170,18 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -201,13 +199,12 @@
             android:shadowRadius="6"
             android:text="Thứ ba"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -216,13 +213,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -231,18 +228,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -258,7 +255,7 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
@@ -269,7 +266,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -287,13 +284,12 @@
             android:shadowRadius="6"
             android:text="Thứ tư"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -302,13 +298,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -317,18 +313,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -344,18 +340,18 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -373,13 +369,12 @@
             android:shadowRadius="6"
             android:text="Thứ năm"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -388,13 +383,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -403,18 +398,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -430,18 +425,18 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -459,13 +454,12 @@
             android:shadowRadius="6"
             android:text="Thứ sáu"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -474,13 +468,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -489,18 +483,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -516,18 +510,18 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
@@ -545,13 +539,12 @@
             android:shadowRadius="6"
             android:text="Thứ bảy"
             android:textColor="@color/white"
-            android:textSize="18dp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -560,13 +553,13 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:shadowColor="@color/black"
@@ -575,18 +568,18 @@
             android:shadowRadius="6"
             android:text="23°"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="30dp"
             android:src="@drawable/sunny" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="15dp"
             android:src="@drawable/cloudy" />
 
@@ -602,12 +595,12 @@
             android:shadowRadius="6"
             android:text="23%"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginLeft="10dp"
             android:src="@drawable/rainy" />
     </LinearLayout>

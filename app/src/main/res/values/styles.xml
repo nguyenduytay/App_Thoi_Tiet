@@ -4,4 +4,8 @@
         <item name="android:textStyle">bold</item>  <!-- Làm đậm chữ -->
         <item name="android:textColor">@color/black</item> <!-- Đổi màu chữ nếu cần -->
     </style>
+    <style name="CustomSpinnerText">
+        <item name="android:textColor">#FF0000</item> <!-- Màu chữ đỏ -->
+        <item name="android:textSize">12sp</item>
+    </style>
 </resources>

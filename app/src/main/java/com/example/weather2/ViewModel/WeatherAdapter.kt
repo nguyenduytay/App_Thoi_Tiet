@@ -1,5 +1,6 @@
 package com.example.weather2.ViewModel
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 
@@ -16,6 +17,7 @@ class WeatherAdapter(private val weatherList: List<WeatherData>) : RecyclerView.
         return WeatherViewHolder(binding)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: WeatherViewHolder, position: Int) {
         val weatherData = weatherList[position]
         with(holder.binding) {
@@ -37,7 +39,7 @@ class WeatherAdapter(private val weatherList: List<WeatherData>) : RecyclerView.
             {
                 valueAfter=weatherList[position+1].temperature
             }
-            WeatherItemView.setData(value,valueAfter,valueBefore,maxTemp,minTemp)
+            WeatherItemLineTempeView.setData(value,valueAfter,valueBefore,maxTemp,minTemp)
         }
 
     }

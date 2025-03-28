@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.example.weather2.Model.WeatherData
-import com.example.weather2.Model.testWeather
 import com.example.weather2.ViewModel.DepthPageTransformer
 import com.example.weather2.ViewModel.MyViewpager2Adapter
 import com.example.weather2.ViewModel.WeatherAdapter
@@ -48,89 +47,6 @@ class MainActivity : AppCompatActivity() {
 
         //sự kiện chuyển đổi fragment
         setUpViewpager2()
-
-
-//         đẩy dữ liệu lên firestore database
-//        val db = FirebaseFirestore.getInstance()
-//        // Thêm dữ liệu vào collection "weather_data"
-//        val weather=testWeather("weather123",30,70,35,25)
-//        db.collection("weather_data").document(weather.id ?: "default_id")
-//            .set(weather)
-//            .addOnSuccessListener {
-//                println("Dữ liệu đã được đẩy lên Firebase thành công!")
-//            }
-//            .addOnFailureListener { e ->
-//                println("Lỗi khi đẩy dữ liệu: ${e.message}")
-//            }
-
-
-        // cập nhật dữ liệu liên tục từ firestore database
-//        val db = FirebaseFirestore.getInstance()
-//        val docRef = db.collection("weather_data").document("weather123")
-
-//        // Lắng nghe thay đổi trong document "weather123"
-//        docRef.addSnapshotListener { snapshot, error ->
-//            if (error != null) {
-//                Log.e("Firestore", "Lỗi khi lắng nghe Firestore: ${error.message}")
-//                return@addSnapshotListener
-//            }
-//
-//            if (snapshot != null && snapshot.exists()) {
-//                val id = snapshot.getString("id") ?: "N/A"
-//                val temperature = snapshot.getLong("temperature")?.toInt() ?: 0
-//                val humidity = snapshot.getLong("humidity")?.toInt() ?: 0
-//                val tempMax = snapshot.getLong("temperatureMax")?.toInt() ?: 0
-//                val tempMin = snapshot.getLong("temperatureMin")?.toInt() ?: 0
-//
-//                binding.tvTempHourLive.text=temperature.toString().plus("°")
-//                binding.tvHumidyHourLive1.text=humidity.toString().plus("%")
-//                binding.tvHumidyHourLive2.text=humidity.toString().plus("%")
-//                binding.tvTempDayMax1.text=tempMax.toString().plus("°")
-//                binding.tvTempDayMax2.text=tempMax.toString().plus("°")
-//                binding.tvTempDayMin1.text=tempMin.toString().plus("°")
-//                binding.tvTempDayMin2.text=tempMin.toString().plus("°")
-//
-//                Log.d("Firestore", "🔥 Cập nhật dữ liệu: ID=$id, Temp=$temperature, Humidity=$humidity")
-//
-//            } else {
-//                Log.d("Firestore", "Document không tồn tại!")
-//            }
-//        }
-
-
-//        //cập nhật dữ liệu liên tục từ realtime database
-//        val database = FirebaseDatabase.getInstance()
-//        val myRef = database.getReference("weather_data")
-
-//        myRef.addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                if (snapshot.exists()) {
-//                    val temperature = snapshot.child("temperature").getValue(Double::class.java) ?: 0.0
-//                    val humidity = snapshot.child("humidity").getValue(Double::class.java) ?: 0.0
-//                    val pressure = snapshot.child("pressure").getValue(Double::class.java) ?: 0.0
-//                    val light = snapshot.child("light").getValue(Int::class.java) ?: 0
-//                    val rain = snapshot.child("rain").getValue(Int::class.java) ?: 0
-//
-//                    // Cập nhật dữ liệu lên giao diện
-//                    binding.tvTempHourLive.text = "${temperature}°"
-//                    binding.tvHumidyHourLive1.text = "${humidity}%"
-//                    binding.tvHumidyHourLive2.text = "${humidity}%"
-//                    binding.tvTempDayMax1.text = "${temperature + 2}°"  // Ví dụ dữ liệu giả lập
-//                    binding.tvTempDayMax2.text = "${temperature + 2}°"
-//                    binding.tvTempDayMin1.text = "${temperature - 2}°"
-//                    binding.tvTempDayMin2.text = "${temperature - 2}°"
-//
-//                    Log.d("Firebase", "Dữ liệu cập nhật: Temp=$temperature, Humidity=$humidity, Pressure=$pressure, Light=$light, Rain=$rain")
-//                } else {
-//                    Log.d("Firebase", "Không có dữ liệu trong Realtime Database!")
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                Log.e("Firebase", "Lỗi khi đọc dữ liệu: ${error.message}")
-//            }
-//        })
-//
     }
 
     //sự kiện chuyển đổi fragment
