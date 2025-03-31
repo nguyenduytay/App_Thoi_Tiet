@@ -7,12 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.weather2.Model.FirebaseRepository
-import com.example.weather2.Model.WeatherData
-import com.example.weather2.R
+import com.example.weather2.Model.Fribase.FirebaseWeatherData
+import com.example.weather2.Model.Entity.WeatherData
 import com.example.weather2.ViewModel.WeatherAdapter
 import com.example.weather2.databinding.DayWeatherBinding
-import com.example.weather2.databinding.FragmentSystemBinding
 import com.example.weather2.databinding.FragmentWeatherBinding
 import com.example.weather2.databinding.HourWeatherBinding
 import com.example.weather2.databinding.StatusSunWeatherBinding
@@ -98,7 +96,7 @@ class WeatherFragment : Fragment() {
     //sự kiện cập nhật thời tiết thay đổi liên tục
     private fun updateWeather()
     {
-        FirebaseRepository.addListener {
+        FirebaseWeatherData.addListener {
             weatherData ->
             bindingFragmentWeather.tvTempHourLive.text=weatherData.temperature.toString().plus(" ℃")
             bindingFragmentWeather.tvHumidyHourLive1.text=weatherData.humidity.toString().plus(" %")

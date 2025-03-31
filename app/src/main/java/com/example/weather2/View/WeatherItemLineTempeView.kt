@@ -1,4 +1,4 @@
-package com.example.weather2.ViewModel
+package com.example.weather2.View
 
 import android.content.Context
 import android.graphics.Canvas

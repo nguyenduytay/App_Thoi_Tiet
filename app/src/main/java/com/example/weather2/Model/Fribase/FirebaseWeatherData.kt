@@ -1,9 +1,10 @@
-package com.example.weather2.Model
+package com.example.weather2.Model.Fribase
 
 import android.util.Log
+import com.example.weather2.Model.Entity.E_WeatherDataFirebase
 import com.google.firebase.database.*
 
-object FirebaseRepository {
+object FirebaseWeatherData {
 
     private val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("weather_data")
 
@@ -14,12 +15,11 @@ object FirebaseRepository {
     private var rain: Int? = null
     private var temperature: Double? = null
 
-    private val listeners = mutableListOf<(WeatherDataFirebase) -> Unit>()
+    private val listeners = mutableListOf<(E_WeatherDataFirebase) -> Unit>()
 
     init {
         listenForChanges()
     }
-
     private fun listenForChanges() {
         database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -30,10 +30,8 @@ object FirebaseRepository {
                     pressure = snapshot.child("pressure").getValue(Double::class.java)
                     rain = snapshot.child("rain").getValue(Int::class.java)
                     temperature = snapshot.child("temperature").getValue(Double::class.java)
-
-                    val weatherData = WeatherDataFirebase(humidity, humidityLand, light, pressure, rain, temperature)
+                    val weatherData = E_WeatherDataFirebase(humidity, humidityLand, light, pressure, rain, temperature)
                     notifyListeners(weatherData)
-
                     Log.d("FirebaseData", "Dữ liệu cập nhật: $weatherData")
                 }
             }
@@ -43,16 +41,29 @@ object FirebaseRepository {
             }
         })
     }
-
-    fun getWeatherData(): WeatherDataFirebase {
-        return WeatherDataFirebase(humidity, humidityLand, light, pressure, rain, temperature)
+    fun getWeatherData(): E_WeatherDataFirebase {
+        return E_WeatherDataFirebase(humidity, humidityLand, light, pressure, rain, temperature)
     }
 
-    fun addListener(listener: (WeatherDataFirebase) -> Unit) {
+    fun addListener(listener: (E_WeatherDataFirebase) -> Unit) {
         listeners.add(listener)
     }
 
-    private fun notifyListeners(weatherData: WeatherDataFirebase) {
+    fun notifyListeners(weatherData: E_WeatherDataFirebase) {
         listeners.forEach { it(weatherData) }
     }
+    fun removeListener(listener: (E_WeatherDataFirebase) -> Unit) {
+        listeners.remove(listener)
+    }
+    fun updateWeatherData(weatherData: E_WeatherDataFirebase) {
+        database.setValue(weatherData)
+            .addOnSuccessListener {
+                Log.d("FirebaseUpdate", "Dữ liệu cập nhật thành công!")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseUpdateError", "Lỗi khi cập nhật dữ liệu", e)
+            }
+    }
+
+
 }

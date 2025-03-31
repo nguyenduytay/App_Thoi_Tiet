@@ -227,7 +227,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:max="100"
-                android:progress="23"
+                android:progress="0"
                 android:progressTint="@color/color_system_temp_time_progress"
                 android:thumbTint="@color/white" />
 

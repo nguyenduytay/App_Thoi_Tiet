@@ -53,7 +53,7 @@
         android:textStyle="bold" />
 
     <!-- Biểu đồ nhiệt độ -->
-    <com.example.weather2.ViewModel.WeatherItemLineTempeView
+    <com.example.weather2.View.WeatherItemLineTempeView
         android:id="@+id/WeatherItemLineTempeView"
         android:layout_width="70dp"
         android:layout_height="50dp" />

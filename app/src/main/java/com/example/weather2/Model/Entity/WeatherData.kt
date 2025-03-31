@@ -1,4 +1,4 @@
-package com.example.weather2.Model
+package com.example.weather2.Model.Entity
 
 data class WeatherData(
     val time: String,

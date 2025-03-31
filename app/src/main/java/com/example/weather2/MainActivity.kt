@@ -1,38 +1,23 @@
 package com.example.weather2
 
-import android.graphics.Color
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
-import android.view.MenuItem
-import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
-import androidx.core.widget.NestedScrollView
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
-import com.example.weather2.Model.WeatherData
+import com.example.weather2.View.Notification.FCMTokenManager
 import com.example.weather2.ViewModel.DepthPageTransformer
 import com.example.weather2.ViewModel.MyViewpager2Adapter
-import com.example.weather2.ViewModel.WeatherAdapter
 import com.example.weather2.databinding.ActivityMainBinding
-import com.example.weather2.databinding.HourWeatherBinding
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationBarView
-import com.google.firebase.Firebase
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -45,10 +30,33 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Kiểm tra quyền đặt báo thức chính xác trên Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+            }
+        }
+        // Xử lý khi mở từ thông báo
+        if (intent?.getBooleanExtra("from_notification", false) == true) {
+            // Có thể thực hiện hành động đặc biệt khi mở từ thông báo
+            Toast.makeText(this, "Ứng dụng được mở từ thông báo", Toast.LENGTH_SHORT).show()
+        }
         //sự kiện chuyển đổi fragment
         setUpViewpager2()
-    }
+        // Cài đặt UncaughtExceptionHandler để bắt lỗi toàn cục
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            // Ghi lại lỗi vào Logcat
+            Log.e("AppError", "Lỗi toàn cục: ${throwable.message}", throwable)
 
+            // Hoặc có thể lưu vào file log nếu muốn
+            // Lưu lại log vào file hoặc gửi về server...
+
+            // Sau đó, bạn có thể kết thúc ứng dụng hoặc thực hiện các hành động khác
+            System.exit(1)
+        }
+    }
     //sự kiện chuyển đổi fragment
     private fun setUpViewpager2() {
         // Chọn menu System (ở giữa) ngay từ đầu
@@ -76,7 +84,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-
         // Xử lý khi người dùng chọn một mục trên BottomNavigationView
         binding.mainMenuBottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -87,5 +94,4 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
 }

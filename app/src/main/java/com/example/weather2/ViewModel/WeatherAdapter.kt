@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weather2.Model.WeatherData
+import com.example.weather2.Model.Entity.WeatherData
 import com.example.weather2.databinding.ItemWeatherBinding
 
 class WeatherAdapter(private val weatherList: List<WeatherData>) : RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() {

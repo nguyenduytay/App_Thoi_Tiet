@@ -1,6 +1,6 @@
-package com.example.weather2.Model
+package com.example.weather2.Model.Entity
 
-data class WeatherDataFirebase(
+data class E_WeatherDataFirebase(
     val humidity: Double?,
     val humidityLand: Double?,
     val light: Int?,

@@ -31,7 +31,7 @@
             android:textStyle="bold" />
 
         <Switch
-            android:id="@+id/sw_notification_setting"
+            android:id="@+id/sw_warning_setting"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
