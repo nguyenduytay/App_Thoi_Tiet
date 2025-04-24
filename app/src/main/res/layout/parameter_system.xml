@@ -10,16 +10,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:paddingBottom="15dp">
+        android:paddingBottom="5dp">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="2.5dp"
             android:layout_weight="1"
             android:background="@drawable/border_textview"
             android:backgroundTint="#39428C"
@@ -31,7 +31,7 @@
             <ImageView
                 android:id="@+id/imageView2"
                 android:layout_width="wrap_content"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 app:srcCompat="@drawable/thermostat_foreground"
                 app:tint="@color/color_system_temp_seekbar_progress" />
@@ -41,7 +41,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="5dp"
                 android:gravity="center"
                 android:text="Nhiệt độ"
                 android:textColor="#FFFFFF"
@@ -52,7 +51,6 @@
                 android:id="@+id/sb_temp_parameter_system"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:max="100"
                 android:progress="55"
                 android:progressTint="@color/color_system_temp_seekbar_progress"
@@ -63,17 +61,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
                 android:text="35 ℃"
                 android:textColor="#51AFFC"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="2.5dp"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
             android:background="@drawable/border_textview"
@@ -85,17 +82,16 @@
             <ImageView
                 android:id="@+id/imageView3"
                 android:layout_width="wrap_content"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 app:srcCompat="@drawable/humidity_percentage_foreground"
                 app:tint="@color/color_system_humidity_air_seekbar_progress" />
 
             <TextView
                 android:id="@+id/textView18"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="5dp"
                 android:gravity="center"
                 android:text="Độ ẩm không khí"
                 android:textColor="#FFFFFF"
@@ -106,7 +102,6 @@
                 android:id="@+id/sb_humidity_air_parameter_system"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:max="100"
                 android:progress="85"
                 android:progressTint="@color/color_system_humidity_air_seekbar_progress"
@@ -117,10 +112,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
                 android:text="80 %"
                 android:textColor="#51AFFC"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -136,7 +130,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="2.5dp"
             android:layout_weight="1"
             android:background="@drawable/border_textview"
             android:backgroundTint="#39428C"
@@ -147,7 +141,7 @@
             <ImageView
                 android:id="@+id/imageView4"
                 android:layout_width="wrap_content"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="10dp"
@@ -157,10 +151,9 @@
 
             <TextView
                 android:id="@+id/textView21"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="5dp"
                 android:gravity="center"
                 android:text="Độ ẩm đất"
                 android:textColor="#FFFFFF"
@@ -171,7 +164,6 @@
                 android:id="@+id/sb_humidity_land_parameter_system"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:max="100"
                 android:progress="85"
                 android:progressTint="@color/color_system_humidity_land_seekbar_progress"
@@ -182,17 +174,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
                 android:text="85 %"
                 android:textColor="#51AFFC"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="2.5dp"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
             android:background="@drawable/border_textview"
@@ -204,17 +195,16 @@
             <ImageView
                 android:id="@+id/imageView5"
                 android:layout_width="wrap_content"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 app:srcCompat="@drawable/schedule"
-                app:tint="@color/color_system_temp_time_progress" />
+                app:tint="@color/color_system_1_progress" />
 
             <TextView
                 android:id="@+id/textView23"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="5dp"
                 android:gravity="center"
                 android:text="Thời gian tưới nước"
                 android:textColor="#FFFFFF"
@@ -225,10 +215,9 @@
                 android:id="@+id/sb_timer_parameter_system"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:max="100"
                 android:progress="0"
-                android:progressTint="@color/color_system_temp_time_progress"
+                android:progressTint="@color/color_system_1_progress"
                 android:thumbTint="@color/white" />
 
             <TextView
@@ -236,10 +225,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
                 android:text="05:00 PM"
                 android:textColor="#51AFFC"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

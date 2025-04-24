@@ -12,5 +12,6 @@
     <color name="color_system_temp_seekbar_progress">#D52B2B</color>
     <color name="color_system_humidity_air_seekbar_progress">#2B75D5</color>
     <color name="color_system_humidity_land_seekbar_progress">#866DCA</color>
-    <color name="color_system_temp_time_progress">#E7C459</color>
+    <color name="color_system_1_progress">#E7C459</color>
+    <color name="color_system_2_progress">#23DA51</color>
 </resources>

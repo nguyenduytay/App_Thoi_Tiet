@@ -1,66 +1,38 @@
-    package com.example.weather2.Database
+package com.example.weather2.Database
 
-    import android.content.Context
-    import androidx.room.Database
-    import androidx.room.Room
-    import androidx.room.RoomDatabase
-    import com.example.weather2.Model.Dao.NotificationDao
-    import com.example.weather2.Model.Dao.TimerDao
-    import com.example.weather2.Model.Dao.WarningDao
-    import com.example.weather2.Model.Entity.Notification
-    import com.example.weather2.Model.Entity.Timer
-    import com.example.weather2.Model.Entity.Warning
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.weather2.Model.Dao.Weather24hDao
+import com.example.weather2.Model.Dao.Weather7dDao
+import com.example.weather2.Model.Entity.Weather24h
+import com.example.weather2.Model.Entity.Weather7d
 
-    @Database(entities = [Warning::class, Timer::class, Notification::class], version = 2 )
-    abstract class AppDatabase : RoomDatabase() {
-        abstract fun warningDao(): WarningDao
-        abstract fun timerDao(): TimerDao
-        abstract fun notificationDao(): NotificationDao
+    @Database(entities = [Weather24h::class, Weather7d::class], version = 3)
+abstract class AppDatabase : RoomDatabase() {
 
-        companion object {
-            @Volatile
-            private var INSTANCE: AppDatabase? = null
+    abstract fun weather24hDao(): Weather24hDao
+    abstract fun weather7dDao(): Weather7dDao
 
-            fun getDatabase(context: Context): AppDatabase {
-                return INSTANCE ?: synchronized(this) {
-                    val instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        AppDatabase::class.java,
-                        "app_database"
-                    ).build()
-                    INSTANCE = instance
-                    instance
-                }
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "app_database_new"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
             }
         }
     }
-//
-//    @Database(
-//        entities = [Warning::class, Timer::class, Notification::class],
-//        version = 2, // Tăng version lên 2
-//        exportSchema = false // Không cần export schema nếu dùng destructive migration
-//    )
-//    abstract class AppDatabase : RoomDatabase() {
-//        abstract fun warningDao(): WarningDao
-//        abstract fun timerDao(): TimerDao
-//        abstract fun notificationDao(): NotificationDao
-//
-//        companion object {
-//            @Volatile
-//            private var INSTANCE: AppDatabase? = null
-//
-//            fun getDatabase(context: Context): AppDatabase {
-//                return INSTANCE ?: synchronized(this) {
-//                    val instance = Room.databaseBuilder(
-//                        context.applicationContext,
-//                        AppDatabase::class.java,
-//                        "app_database"
-//                    )
-//                        .fallbackToDestructiveMigration() // XÓA TOÀN BỘ DB CŨ VÀ TẠO MỚI
-//                        .build()
-//                    INSTANCE = instance
-//                    instance
-//                }
-//            }
-//        }
-//    }
+}

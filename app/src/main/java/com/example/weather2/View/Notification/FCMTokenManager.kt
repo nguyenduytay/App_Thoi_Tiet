@@ -1,6 +1,5 @@
 package com.example.weather2.View.Notification
 
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 
 object FCMTokenManager {

@@ -10,7 +10,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
@@ -61,9 +61,103 @@
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/border_textview"
+        android:backgroundTint="#39428C"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    app:srcCompat="@drawable/time_auto"
+                    app:tint="@color/color_system_1_progress" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:shadowColor="#000000"
+                    android:shadowDx="3"
+                    android:shadowDy="3"
+                    android:shadowRadius="6"
+                    android:text="Tư động tưới nước"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <Switch
+                    android:id="@+id/sw_automatic_system"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:checked="false"
+                    android:enabled="true"
+                    android:paddingRight="40dp"
+                    android:scaleX="2"
+                    android:scaleY="2"
+                    android:thumb="@drawable/ic_thumb"
+                    android:track="@drawable/bg_track"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingRight="40dp"
+                android:shadowColor="#000000"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:shadowRadius="6"
+                android:text="Độ ẩm đất"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <NumberPicker
+                android:id="@+id/np_humidity_land_system"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginRight="20dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/border_textview"
@@ -82,7 +176,7 @@
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 app:srcCompat="@drawable/timer_24dp"
-                app:tint="@color/color_system_temp_time_progress" />
+                app:tint="@color/color_system_2_progress" />
 
             <TextView
                 android:id="@+id/textView26"
@@ -95,7 +189,7 @@
                 android:shadowDx="3"
                 android:shadowDy="3"
                 android:shadowRadius="6"
-                android:text="Hẹn giờ"
+                android:text="Hẹn giờ tưới nước"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -113,7 +207,8 @@
                 android:scaleX="2"
                 android:scaleY="2"
                 android:thumb="@drawable/ic_thumb"
-                android:track="@drawable/bg_track" />
+                android:track="@drawable/bg_track"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
 
         </LinearLayout>
 
@@ -255,6 +350,104 @@
 
         </LinearLayout>
 
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/border_textview"
+        android:backgroundTint="#39428C"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/precision_manufacturing"
+            app:tint="@color/color_menu_icon_click" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:shadowColor="#000000"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="6"
+            android:text="Kéo màn che"
+            android:textColor="#FAF9F9"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/sw_window_blinds_system"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:paddingRight="40dp"
+            android:scaleX="2"
+            android:scaleY="2"
+            android:thumb="@drawable/ic_thumb"
+            android:track="@drawable/bg_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/border_textview"
+        android:backgroundTint="#39428C"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/rotate_auto"
+            app:tint="@color/color_system_1_progress" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:shadowColor="#000000"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="6"
+            android:text="Tự động kéo"
+            android:textColor="#FAF9F9"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/sw_window_blinds_automatic_system"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:paddingRight="40dp"
+            android:scaleX="2"
+            android:scaleY="2"
+            android:thumb="@drawable/ic_thumb"
+            android:track="@drawable/bg_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
 </LinearLayout>

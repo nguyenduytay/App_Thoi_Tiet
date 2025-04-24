@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
+import com.example.weather2.Database.AppDatabase
 import com.example.weather2.View.Notification.FCMTokenManager
 import com.example.weather2.ViewModel.DepthPageTransformer
 import com.example.weather2.ViewModel.MyViewpager2Adapter
@@ -18,12 +19,13 @@ import com.example.weather2.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: MyViewpager2Adapter
-
-    private var lastScrollTime = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,22 +40,19 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+
         // Xử lý khi mở từ thông báo
         if (intent?.getBooleanExtra("from_notification", false) == true) {
             // Có thể thực hiện hành động đặc biệt khi mở từ thông báo
             Toast.makeText(this, "Ứng dụng được mở từ thông báo", Toast.LENGTH_SHORT).show()
         }
+
         //sự kiện chuyển đổi fragment
         setUpViewpager2()
+
         // Cài đặt UncaughtExceptionHandler để bắt lỗi toàn cục
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            // Ghi lại lỗi vào Logcat
             Log.e("AppError", "Lỗi toàn cục: ${throwable.message}", throwable)
-
-            // Hoặc có thể lưu vào file log nếu muốn
-            // Lưu lại log vào file hoặc gửi về server...
-
-            // Sau đó, bạn có thể kết thúc ứng dụng hoặc thực hiện các hành động khác
             System.exit(1)
         }
     }

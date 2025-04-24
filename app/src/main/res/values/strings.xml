@@ -5,4 +5,7 @@
     <string name="menu_weather">Thời tiết</string>
     <string name="menu_home">Hệ thống</string>
     <string name="menu_setting">Cài đặt</string>
+
+    <string name="voice_shortcut_short_label">Lệnh giọng nói</string>
+    <string name="voice_shortcut_long_label">Nói lệnh điều khiển</string>
 </resources>

@@ -11,6 +11,8 @@
     <!-- Cấp quyền chạy lại báo thức sau khi thiết bị khởi động lại -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/sunny"
@@ -30,8 +32,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
-
+        <activity
+            android:name=".View.VoiceCommandActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme.Transparent">
+        </activity>
         <!-- Khai báo BroadcastReceiver nhận báo thức -->
         <receiver
             android:name=".View.Notification.NotificationReceiver"

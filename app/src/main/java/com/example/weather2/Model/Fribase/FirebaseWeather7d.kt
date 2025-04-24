@@ -1,7 +1,6 @@
 package com.example.weather2.Model.Fribase
 
 import android.util.Log
-import com.example.weather2.Model.Entity.E_WarningConfigFirebase
 import com.example.weather2.Model.Entity.E_Weather7dFirebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -11,47 +10,67 @@ import com.google.firebase.database.ValueEventListener
 
 object FirebaseWeather7d {
     private val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("weather_7d")
-    private var weather7d: E_Weather7dFirebase? = null
-    private val listeners = mutableListOf<(E_Weather7dFirebase) -> Unit>()
+
+    // Map lưu danh sách dữ liệu thời tiết theo ngày
+    private var weatherDataMap: MutableMap<String, E_Weather7dFirebase> = mutableMapOf()
+
+    private val listeners = mutableListOf<(Map<String, E_Weather7dFirebase>) -> Unit>()
+
     init {
         listenForChanges()
     }
+
     private fun listenForChanges() {
         database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val newConfig = snapshot.getValue(E_Weather7dFirebase::class.java)
-                    if (newConfig != null) {
-                        weather7d = newConfig
-                        notifyListeners(newConfig)
-                        Log.d("FirebaseData", "Dữ liệu cập nhật: $newConfig")
+                val newDataMap = mutableMapOf<String, E_Weather7dFirebase>()
+
+                for (daySnapshot in snapshot.children) {
+                    val day = daySnapshot.key
+                    val data = daySnapshot.getValue(E_Weather7dFirebase::class.java)
+
+                    if (day != null && data != null) {
+                        newDataMap[day] = data
                     }
                 }
+                weatherDataMap = newDataMap
+                notifyListeners(newDataMap)
+                Log.d("FirebaseData7d", "Dữ liệu 7 ngày cập nhật: $newDataMap")
             }
+
             override fun onCancelled(error: DatabaseError) {
-                Log.e("FirebaseError", "Lỗi khi lấy dữ liệu", error.toException())
+                Log.e("FirebaseError", "Lỗi khi lấy dữ liệu 7 ngày", error.toException())
             }
         })
     }
-    fun getWarningConfig(): E_Weather7dFirebase? {
-        return weather7d
+
+    // ✅ Lấy danh sách dữ liệu thời tiết 7 ngày
+    fun getWeatherData(): Map<String, E_Weather7dFirebase> {
+        return weatherDataMap
     }
-    fun addListener(listener: (E_Weather7dFirebase) -> Unit) {
+
+    // ✅ Thêm listener để lắng nghe thay đổi
+    fun addListener(listener: (Map<String, E_Weather7dFirebase>) -> Unit) {
         listeners.add(listener)
     }
-    private fun notifyListeners(newConfig: E_Weather7dFirebase) {
-        listeners.forEach { it(newConfig) }
-    }
-    fun removeListener(listener: (E_Weather7dFirebase) -> Unit) {
+
+    // ✅ Xóa listener khi không cần thiết
+    fun removeListener(listener: (Map<String, E_Weather7dFirebase>) -> Unit) {
         listeners.remove(listener)
     }
-    fun updateWarningConfig(newConfig: E_Weather7dFirebase) {
-        database.setValue(newConfig)
+
+    private fun notifyListeners(newDataMap: Map<String, E_Weather7dFirebase>) {
+        listeners.forEach { it(newDataMap) }
+    }
+
+    // ✅ Cập nhật toàn bộ dữ liệu trên Firebase
+    fun updateWeatherData(newDataMap: Map<String, E_Weather7dFirebase>) {
+        database.setValue(newDataMap)
             .addOnSuccessListener {
-                Log.d("FirebaseUpdate", "Dữ liệu cập nhật thành công!")
+                Log.d("FirebaseUpdate", "Dữ liệu 7 ngày cập nhật thành công!")
             }
             .addOnFailureListener { e ->
-                Log.e("FirebaseUpdateError", "Lỗi khi cập nhật dữ liệu", e)
+                Log.e("FirebaseUpdateError", "Lỗi khi cập nhật dữ liệu 7 ngày", e)
             }
     }
 }
