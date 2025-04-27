@@ -43,6 +43,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
 import kotlin.math.PI
 import kotlin.math.acos
 import kotlin.math.cos
@@ -58,6 +59,7 @@ class WeatherFragment : Fragment() {
     private lateinit var weather7dViewModel: Weather7dViewModel
 
     private var timeUpdateJob: Job? = null
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -75,8 +77,8 @@ class WeatherFragment : Fragment() {
         getDayEndTime()
         setupWeather24h()
         setupWeather7d()
-        updateWeather()
         showDataEndCalculateWeather()
+        bindingFragmentWeather.MotionLayout.background=context?.getDrawable(R.drawable.cloudy_bg)
         return bindingFragmentWeather.root
     }
 
@@ -129,7 +131,73 @@ class WeatherFragment : Fragment() {
         val dateTime = LocalDateTime.parse(dateTimeString, formatter)
         return "${dateTime.hour}:${String.format("%02d", dateTime.minute)}"
     }
+    // Hàm lấy icon thời tiết dựa trên thời gian và khả năng mưa
+    fun getWeatherIcon(timeStr: String, rainProbability: Int): Int {
+        // Lấy giờ từ chuỗi thời gian
+        val hour = timeStr.split(":")[0].toInt()
 
+        // Xác định ban ngày hay ban đêm (6:00 - 18:00 là ban ngày)
+        val isDayTime = hour in 6..18
+
+        // Xác định icon dựa trên thời gian và khả năng mưa
+        return when {
+            //trường hớp nhiều mây (khả năng mưa > 60%)
+            rainProbability > 60 -> {
+                R.mipmap.rain
+            }
+            // Trường hợp mưa (40% < khả năng mưa <= 60% )
+            rainProbability > 40 -> {
+                if (isDayTime) R.mipmap.sunny_rain
+                else R.mipmap.nigh_rain
+            }
+
+            // Trường hợp nhiều mây (20% < khả năng mưa <= 40%)
+            rainProbability > 20 -> {
+                if (isDayTime) R.mipmap.sunny_cloudy
+                else R.mipmap.night_cloudy
+            }
+
+            // Trường hợp trời quang/ít mây (khả năng mưa <= 20%)
+            else -> {
+                if (isDayTime) R.mipmap.sunny
+                else R.mipmap.night
+            }
+        }
+    }
+
+    //cập nhật dữ liệu dự báo và tính toán
+    @SuppressLint("SetTextI18n")
+    private fun showDataEndCalculateWeather() {
+        //cập nhật thời gian mặt trời mọc và lặn
+        // Vị trí Đà Nẵng
+        val latitude = 16.0752
+        val longitude = 108.1531
+        val (sunriseStr, sunsetStr) = calculateSunTimes(latitude, longitude)
+
+        bindingStatusSunWeather.tvStartSun.text = sunsetStr
+        bindingStatusSunWeather.tvEndSun.text = sunriseStr
+
+        // cập nhật max min nhiệt độ trong ngày
+
+        FirebaseWeather24h.addListener { data ->
+            val max = data.values.maxByOrNull { it.T2M }?.T2M
+            val min = data.values.minByOrNull { it.T2M }?.T2M
+            bindingFragmentWeather.tvTempDayMax1.text = max?.toInt().toString()
+            bindingFragmentWeather.tvTempDayMin1.text = min?.toInt().toString()
+        }
+        FirebaseWeatherData.addListener { weatherData ->
+            val calendar = Calendar.getInstance()
+            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+            bindingFragmentWeather.tvTempHourLive.text =
+                weatherData.temperature?.let { roundNumber(it).toString().plus(" ℃") }
+            bindingFragmentWeather.tvHumidyHourLive1.text =
+                weatherData.humidity?.let { roundNumber(it).toString().plus(" %")}
+            weatherData.rain?.let {
+                getWeatherIcon(format.format(calendar.time).toString(),
+                    it.toInt())
+            }?.let { bindingFragmentWeather.ivWeatherHourLive.setImageResource(it) }
+        }
+    }
     // tính khả năng mưa dựa vào các thông số
     fun calculateRainProbability(
         prectotcorr: Double,     // PRECTOTCORR (mm/giờ)
@@ -212,36 +280,8 @@ class WeatherFragment : Fragment() {
         val alpha = ((a * t2m) / (b + t2m)) + Math.log(rh)
         return (b * alpha) / (a - alpha)
     }
-
     //Trả về giá trị lớn hơn giữa hai số
     private fun max(a: Double, b: Double): Double = if (a > b) a else b
-
-    // Hàm lấy icon thời tiết (cần tùy chỉnh theo API của bạn)
-    fun getWeatherIcon(time: String, temp: Double): Int {
-        // Lấy giờ từ chuỗi thời gian có dạng "14:00"
-        val hour = time.split(":")[0].toInt()  // Lấy giờ từ "14:00"
-
-        // Kiểm tra xem đó là ban ngày hay ban đêm
-        val isDayTime = hour in 6..18  // Giả sử ban ngày từ 06:00 đến 18:00, còn lại là ban đêm
-
-        // Quyết định icon dựa trên thời gian và nhiệt độ
-        return when {
-            isDayTime && temp > 25 -> R.drawable.sunny
-            isDayTime && temp < 25 -> R.drawable.cloudy_sunny
-            !isDayTime && temp < 20 -> R.drawable.cloudy
-            else -> R.drawable.snowy
-        }
-    }
-
-    //sự kiện cập nhật thời tiết thay đổi liên tục
-    private fun updateWeather() {
-        FirebaseWeatherData.addListener { weatherData ->
-            bindingFragmentWeather.tvTempHourLive.text =
-                weatherData.temperature?.let { roundNumber(it).toString().plus(" ℃") }
-            bindingFragmentWeather.tvHumidyHourLive1.text =
-                weatherData.humidity?.let { roundNumber(it).toString().plus(" %")}
-        }
-    }
 
     //hàm tính thời gian mặt trời mọc và mặt trời lặn
     @SuppressLint("NewApi")
@@ -319,28 +359,6 @@ class WeatherFragment : Fragment() {
         return Pair(sunriseStr, sunsetStr)
     }
 
-
-    //cập nhật dữ liệu dự báo và tính toán
-    @SuppressLint("SetTextI18n")
-    private fun showDataEndCalculateWeather() {
-        //cập nhật thời gian mặt trời mọc và lặn
-        // Vị trí Đà Nẵng
-        val latitude = 16.0752
-        val longitude = 108.1531
-        val (sunriseStr, sunsetStr) = calculateSunTimes(latitude, longitude)
-
-        bindingStatusSunWeather.tvStartSun.text = sunsetStr
-        bindingStatusSunWeather.tvEndSun.text = sunriseStr
-
-        // cập nhật max min nhiệt độ trong ngày
-
-        FirebaseWeather24h.addListener { data ->
-            val max = data.values.maxByOrNull { it.T2M }?.T2M
-            val min = data.values.minByOrNull { it.T2M }?.T2M
-            bindingFragmentWeather.tvTempDayMax1.text = max?.toInt().toString()
-            bindingFragmentWeather.tvTempDayMin1.text = min?.toInt().toString()
-        }
-    }
     //Giá trị cần làm tròn
     private fun roundNumber(value: Double): Int {
         val decimalPart = value - value.toInt()
@@ -362,18 +380,19 @@ class WeatherFragment : Fragment() {
                     // Tạo đối tượng WeatherData từ dữ liệu Firebase
                     val time = extractHourMinute(entry.key)
                     val weatherData = entry.value
+                    val  rainProbability = calculateRainProbability(
+                        weatherData.PRECTOTCORR,
+                        weatherData.QV2M,
+                        weatherData.PS,
+                        weatherData.T2M,
+                        weatherData.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
                     Weather24hData(
                         time = time,
                         temperature = roundNumber(weatherData.T2M),  // Làm tròn nhiệt độ
-                        rainProbability = calculateRainProbability(
-                            weatherData.PRECTOTCORR,
-                            weatherData.QV2M,
-                            weatherData.PS,
-                            weatherData.T2M,
-                            weatherData.ALLSKY_SFC_PAR_TOT,
-                            10.0
-                        ),
-                        icon = getWeatherIcon(time, weatherData.T2M)  // Hàm lấy icon thời tiết
+                        rainProbability = rainProbability,
+                        icon = getWeatherIcon(time, rainProbability)  // Hàm lấy icon thời tiết
                     )
                 }
                 val weatherListRoomData = weatherMap.entries.map { entry ->
@@ -401,18 +420,19 @@ class WeatherFragment : Fragment() {
                 val weatherList = weather24hViewmodel.getAllWeather24h()
                 val weather24hData = weatherList.map { entity ->
                     val time = extractHourMinute(entity.time)
+                    val rainProbability = calculateRainProbability(
+                        entity.PRECTOTCORR,
+                        entity.QV2M,
+                        entity.PS,
+                        entity.T2M,
+                        entity.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
                     Weather24hData(
                         time = time,
                         temperature = roundNumber(entity.T2M),
-                        rainProbability = calculateRainProbability(
-                            entity.PRECTOTCORR,
-                            entity.QV2M,
-                            entity.PS,
-                            entity.T2M,
-                            entity.ALLSKY_SFC_PAR_TOT,
-                            10.0
-                        ),
-                        icon = getWeatherIcon(time, entity.T2M)
+                        rainProbability = rainProbability,
+                        icon = getWeatherIcon(time, rainProbability)
                     )
                 }
                 bindingHourWeather.recyclerViewWeatherHour.apply {
@@ -459,20 +479,29 @@ class WeatherFragment : Fragment() {
                     // Tạo đối tượng WeatherData từ dữ liệu Firebase
                     val time = extractDayOfWeekInVietnamese(entry.key)
                     val weatherData = entry.value
+                    val rainProbability_max = calculateRainProbability(
+                        weatherData.PRECTOTCORR,
+                        weatherData.QV2M,
+                        weatherData.PS,
+                        weatherData.T2M_max,
+                        weatherData.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
+                    val rainProbability_min = calculateRainProbability(
+                        weatherData.PRECTOTCORR,
+                        weatherData.QV2M,
+                        weatherData.PS,
+                        weatherData.T2M_min,
+                        weatherData.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
                     Weather7dData(
                         time = time,
                         temperatureMax = roundNumber(weatherData.T2M_max),
                         temperatureMin = roundNumber(weatherData.T2M_min),
-                        rainProbability = calculateRainProbability(
-                            weatherData.PRECTOTCORR,
-                            weatherData.QV2M,
-                            weatherData.PS,
-                            (weatherData.T2M_max + weatherData.T2M_min) / 2,
-                            weatherData.ALLSKY_SFC_PAR_TOT,
-                            10.0
-                        ),
-                        icon_morning = getWeatherIcon("6:00", weatherData.T2M_max),
-                        icon_evening = getWeatherIcon("22:00", weatherData.T2M_min)
+                        rainProbability = rainProbability_min,
+                        icon_morning = getWeatherIcon("6:00", rainProbability_max),
+                        icon_evening = getWeatherIcon("22:00", rainProbability_min)
                     )
                 }
                 val weatherListRoomData = weatherMap.entries.map { entry ->
@@ -500,20 +529,29 @@ class WeatherFragment : Fragment() {
                 val weatherList = weather7dViewModel.getAllWeather7d()
                 val weather7dData = weatherList.map { entity ->
                     val time = extractDayOfWeekInVietnamese(entity.time)
+                    val rainProbability_max = calculateRainProbability(
+                        entity.PRECTOTCORR,
+                        entity.QV2M,
+                        entity.PS,
+                        entity.T2M_MAX,
+                        entity.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
+                    val rainProbability_min = calculateRainProbability(
+                        entity.PRECTOTCORR,
+                        entity.QV2M,
+                        entity.PS,
+                        entity.T2M_MIN,
+                        entity.ALLSKY_SFC_PAR_TOT,
+                        10.0
+                    )
                     Weather7dData(
                         time = time,
                         temperatureMax = roundNumber(entity.T2M_MAX),
                         temperatureMin = roundNumber(entity.T2M_MIN),
-                        rainProbability = calculateRainProbability(
-                            entity.PRECTOTCORR,
-                            entity.QV2M,
-                            entity.PS,
-                            (entity.T2M_MAX + entity.T2M_MIN) / 2,
-                            entity.ALLSKY_SFC_PAR_TOT,
-                            10.0
-                        ),
-                        icon_morning = getWeatherIcon("6:00", entity.T2M_MAX),
-                        icon_evening = getWeatherIcon("22:00", entity.T2M_MIN)
+                        rainProbability = rainProbability_min,
+                        icon_morning = getWeatherIcon("6:00", rainProbability_min),
+                        icon_evening = getWeatherIcon("22:00", rainProbability_min)
                     )
                 }
                 bindingDayWeather.rvDayWeather.apply {

@@ -8,7 +8,6 @@
     android:layout_marginTop="15dp"
     android:layout_marginRight="8dp"
     android:background="@drawable/forecast_bg"
-    android:backgroundTint="#2E67A8"
     android:orientation="vertical">
 
     <LinearLayout
@@ -97,8 +96,8 @@
             android:layout_marginBottom="5dp"
             android:layout_weight="1"
             android:backgroundTint="#2E67A8"
-            app:srcCompat="@drawable/ic_launcher_foreground"
-            app:tint="@color/color_sun_high" />
+            app:srcCompat="@mipmap/sunset"
+            />
 
         <ImageView
             android:id="@+id/imageButton2"
@@ -107,7 +106,7 @@
             android:layout_marginBottom="5dp"
             android:layout_weight="1"
             android:backgroundTint="#2E67A8"
-            app:srcCompat="@drawable/ic_launcher_foreground"
-            app:tint="@color/color_sun_low" />
+            app:srcCompat="@mipmap/sunrise"
+             />
     </LinearLayout>
 </LinearLayout>

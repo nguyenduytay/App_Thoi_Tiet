@@ -24,7 +24,7 @@ class Weather24hAdapter(private val weatherList: List<Weather24hData>) : Recycle
             tvTime.text = weatherData.time
             tvTemperature.text = "${weatherData.temperature}°"
             tvHumidity.text = "${weatherData.rainProbability}%"
-
+            ivWeatherIcon.setImageResource(weatherData.icon)
             // Lấy nhiệt độ tối đa và tối thiểu từ danh sách
             val maxTemp = weatherList.maxOf { it.temperature.toInt() }
             val minTemp = weatherList.minOf { it.temperature.toInt() }
