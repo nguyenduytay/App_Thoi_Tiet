@@ -9,6 +9,6 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.example.weather2"
-            android:targetClass="com.example.weather2.View.VoiceCommandActivity" />
+            android:targetClass="com.example.weather2.Utils.VoiceCommandActivity" />
     </shortcut>
 </shortcuts>

@@ -5,8 +5,8 @@
     android:id="@+id/activate_system"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@color/color_menu">
+    android:background="@color/color_menu"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,6 +44,55 @@
 
         <Switch
             android:id="@+id/sw_water_system"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:paddingRight="40dp"
+            android:scaleX="2"
+            android:scaleY="2"
+            android:thumb="@drawable/ic_thumb"
+            android:track="@drawable/bg_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/border_textview"
+        android:backgroundTint="#39428C"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/precision_manufacturing"
+            app:tint="#9A44F6" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:shadowColor="#000000"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="6"
+            android:text="Kéo màn che"
+            android:textColor="#FAF9F9"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/sw_window_blinds_system"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -98,7 +147,7 @@
                     android:shadowDx="3"
                     android:shadowDy="3"
                     android:shadowRadius="6"
-                    android:text="Tư động tưới nước"
+                    android:text="Chế độ tự động"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -128,36 +177,74 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/textView19"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:paddingRight="40dp"
                 android:shadowColor="#000000"
                 android:shadowDx="3"
                 android:shadowDy="3"
                 android:shadowRadius="6"
-                android:text="Độ ẩm đất"
+                android:text="Ngưỡng tối thiểu"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
             <NumberPicker
-                android:id="@+id/np_humidity_land_system"
+                android:id="@+id/np_humidity_min_land_system"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="20dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:shadowColor="#000000"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:shadowRadius="6"
+                android:text="Ngưỡng tối đa"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <NumberPicker
+                android:id="@+id/np_humidity_max_land_system"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
                 android:layout_weight="1" />
         </LinearLayout>
+        <Button
+            android:id="@+id/bt_update_humidity_land"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Áp Dụng"
+            android:layout_gravity="end"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:backgroundTint="#1CBF2F"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="5dp"
+            android:enabled="false"
+            >
+
+        </Button>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="15dp"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/border_textview"
@@ -351,54 +438,7 @@
         </LinearLayout>
 
     </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="10dp"
-        android:background="@drawable/border_textview"
-        android:backgroundTint="#39428C"
-        android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/precision_manufacturing"
-            app:tint="@color/color_menu_icon_click" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:shadowColor="#000000"
-            android:shadowDx="3"
-            android:shadowDy="3"
-            android:shadowRadius="6"
-            android:text="Kéo màn che"
-            android:textColor="#FAF9F9"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <Switch
-            android:id="@+id/sw_window_blinds_system"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:checked="false"
-            android:enabled="true"
-            android:paddingRight="40dp"
-            android:scaleX="2"
-            android:scaleY="2"
-            android:thumb="@drawable/ic_thumb"
-            android:track="@drawable/bg_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -409,45 +449,9 @@
         android:layout_marginBottom="20dp"
         android:background="@drawable/border_textview"
         android:backgroundTint="#39428C"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/rotate_auto"
-            app:tint="@color/color_system_1_progress" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:shadowColor="#000000"
-            android:shadowDx="3"
-            android:shadowDy="3"
-            android:shadowRadius="6"
-            android:text="Tự động kéo"
-            android:textColor="#FAF9F9"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <Switch
-            android:id="@+id/sw_window_blinds_automatic_system"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:checked="false"
-            android:enabled="true"
-            android:paddingRight="40dp"
-            android:scaleX="2"
-            android:scaleY="2"
-            android:thumb="@drawable/ic_thumb"
-            android:track="@drawable/bg_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
 </LinearLayout>

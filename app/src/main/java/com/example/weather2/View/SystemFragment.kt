@@ -6,19 +6,26 @@ import android.app.TimePickerDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.weather2.Model.Fribase.FirebaseWeatherData
-import com.example.weather2.Model.Fribase.FirebaseWatering
-import com.example.weather2.Model.Fribase.FirebaseWindowBlinds
+import com.example.weather2.Model.Entity.E_WateringFirebase
+import com.example.weather2.Model.Entity.E_WeatherDataFirebase
+import com.example.weather2.Mqtt.MqttHandler
+import com.example.weather2.ViewModel.WeatherDataViewModel
+import com.example.weather2.ViewModel.WateringViewModel
 import com.example.weather2.databinding.ActivateSystemBinding
 import com.example.weather2.databinding.FragmentSystemBinding
 import com.example.weather2.databinding.ParameterSystemBinding
@@ -36,113 +43,464 @@ import kotlin.math.roundToInt
 
 /**
  * Fragment quản lý giao diện hệ thống điều khiển tưới cây và rèm cửa tự động
- * Hiển thị thời gian, thông tin thời tiết và các điều khiển hẹn giờ
+ * Sử dụng MVVM pattern với ViewModels để quản lý dữ liệu
  */
-class SystemFragment : Fragment() {
-    // Binding để truy cập các thành phần UI trong layout
-    private lateinit var bindingSystem: FragmentSystemBinding
-    private lateinit var bindingParameterSystem: ParameterSystemBinding
-    private lateinit var bindingActivateSystem: ActivateSystemBinding
+class SystemFragment : Fragment(), MqttHandler.MqttCallback {
 
-    // Lưu trữ các coroutine job để có thể hủy khi cần thiết, tránh memory leak
-    private var timeUpdateJob: Job? = null
-    private var blinkSecondJob: Job? = null
-    private var timerProgressUpdateJob: Job? = null
+    // =================================
+    // BINDING PROPERTIES - View binding cho các layout
+    // =================================
+    private var _binding: FragmentSystemBinding? = null // Nullable binding để tránh memory leak
+    private val binding get() = _binding!! // Property delegate để truy cập binding an toàn
 
-    // Biến cờ để kiểm soát việc cập nhật từ Firebase, tránh vòng lặp vô hạn
-    private var isUpdatingFromFirebase = false
+    private lateinit var bindingParameterSystem: ParameterSystemBinding // Binding cho parameter layout
+    private lateinit var bindingActivateSystem: ActivateSystemBinding // Binding cho activate layout
+
+    // =================================
+    // VIEWMODELS - Quản lý dữ liệu theo MVVM pattern
+    // =================================
+    private lateinit var weatherDataViewModel: WeatherDataViewModel // ViewModel cho dữ liệu thời tiết
+    private lateinit var wateringViewModel: WateringViewModel // ViewModel cho dữ liệu tưới nước
+
+    // =================================
+    // COROUTINE JOBS - Quản lý các coroutine
+    // =================================
+    private var timeUpdateJob: Job? = null // Job để cập nhật thời gian real-time
+    private var blinkSecondJob: Job? = null // Job để tạo hiệu ứng nhấp nháy giây
+    private var timerProgressUpdateJob: Job? = null // Job để cập nhật thanh tiến trình hẹn giờ
+
+    // =================================
+    // STATE MANAGEMENT - Quản lý trạng thái
+    // =================================
+    private var isUpdatingFromViewModel = false // Cờ để tránh vòng lặp vô hạn khi cập nhật UI
+
+    // =================================
+    // MQTT HANDLER - Xử lý giao tiếp MQTT
+    // =================================
+    private lateinit var mqttHandler: MqttHandler // Handler để giao tiếp với thiết bị IoT
+
+    private var mqttCommandTime = 0L
+    private val MQTT_DELAY = 1000L
 
     /**
-     * Khởi tạo giao diện và thiết lập các listener
+     * Khởi tạo giao diện và thiết lập các thành phần
      * Được gọi khi fragment được tạo và hiển thị lên màn hình
      */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Khởi tạo các binding để truy cập các thành phần UI
-        bindingSystem = FragmentSystemBinding.inflate(inflater, container, false)
+        // Khởi tạo binding cho layout chính
+        _binding = FragmentSystemBinding.inflate(inflater, container, false)
+
+        // Khởi tạo binding cho các include layout
         bindingParameterSystem =
-            ParameterSystemBinding.bind(bindingSystem.includeParameterSystem.parameterSystem)
+            ParameterSystemBinding.bind(binding.includeParameterSystem.parameterSystem)
         bindingActivateSystem =
-            ActivateSystemBinding.bind(bindingSystem.includeActivateSystem.activateSystem)
+            ActivateSystemBinding.bind(binding.includeActivateSystem.activateSystem)
 
-        // Đầu tiên cập nhật dữ liệu từ Firebase
-        updateWeather()
+        // Khởi tạo các thành phần chính
+        initViewModels() // Tạo instances của ViewModels
+        initMqtt() // Khởi tạo MQTT handler
+        setupObservers() // Thiết lập observers để lắng nghe dữ liệu
+        setupUI() // Thiết lập UI components và interactions
+        startUIUpdates() // Bắt đầu các coroutines cập nhật UI
 
-        // Thiết lập UI và các listener
-        setSpinner()           // Thiết lập spinner chọn ngày trong tuần
-        getTime()              // Khởi động hàm cập nhật thời gian thực
-        blinkSecond()          // Khởi động hiệu ứng nhấp nháy giây
-        timeTimer()            // Thiết lập chức năng hẹn giờ
-        startTimerProgressUpdates()  // Theo dõi và cập nhật thanh tiến trình hẹn giờ
-        OnAndOffWarning()      // Thiết lập chức năng bật tắt tưới nước
-        wateringAutomatic()    // Thiết lập chức năng tưới nước tự động
-        setupWindowBlindsControls()  // Thiết lập điều khiển rèm cửa
-
-        return bindingSystem.root
+        return binding.root // Trả về root view
     }
 
     /**
-     * Hủy tất cả các coroutine khi Fragment bị hủy
-     * Giúp tránh leak memory và crash
+     * Khởi tạo các ViewModels sử dụng ViewModelProvider
+     * ViewModelProvider đảm bảo ViewModels survive configuration changes
      */
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        // Hủy tất cả các coroutine khi Fragment bị hủy để tránh memory leak
-        timeUpdateJob?.cancel()
-        blinkSecondJob?.cancel()
-        timerProgressUpdateJob?.cancel() // Cần thêm dòng này để hủy job cập nhật tiến trình hẹn giờ
+    private fun initViewModels() {
+        weatherDataViewModel = ViewModelProvider(this)[WeatherDataViewModel::class.java]
+        wateringViewModel = ViewModelProvider(this)[WateringViewModel::class.java]
     }
 
     /**
-     * Cập nhật thời gian thực liên tục trên giao diện
-     * Sử dụng coroutine để cập nhật thời gian mỗi giây
+     * Khởi tạo MQTT handler và thiết lập callback
      */
-    private fun getTime() {
-        // Sử dụng repeatOnLifecycle để tự động hủy coroutine khi lifecycle thay đổi
-        timeUpdateJob = lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    val currentTime = getCurrentTime()
-                    val currentDayMonth = getCurrentDayMonthEndYear()
+    private fun initMqtt() {
+        mqttHandler = MqttHandler(requireContext()) // Tạo MQTT handler với context
+        mqttHandler.setCallback(this) // Set callback để nhận thông báo từ MQTT
+        mqttHandler.connect() // Kết nối tới MQTT broker
+    }
 
-                    withContext(Dispatchers.Main) {
-                        // Cập nhật các thành phần UI hiển thị thời gian
-                        bindingSystem.tvTimeSystem.text = currentTime.first
-                        bindingSystem.tvTimeFormatSystem.text = currentTime.second
-                        bindingSystem.tvRankDaySystem.text = getCurrentDayInVN()
-                        bindingSystem.tvYearSystem.text = currentDayMonth.second
-                        bindingSystem.tvDayMonthSystem.text = currentDayMonth.first
+    /**
+     * Thiết lập tất cả observers để lắng nghe dữ liệu từ ViewModels
+     */
+    private fun setupObservers() {
+        observeWeatherData() // Lắng nghe dữ liệu thời tiết
+        observeWateringData() // Lắng nghe dữ liệu tưới nước
+        observeLoadingStates() // Lắng nghe trạng thái loading
+        observeErrors() // Lắng nghe và xử lý lỗi
+        observeUpdateSuccess() // Lắng nghe thông báo cập nhật thành công
+    }
+
+    /**
+     * Observer dữ liệu thời tiết từ WeatherDataViewModel
+     */
+    private fun observeWeatherData() {
+        viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine tied to view lifecycle
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ observe khi Fragment active
+                weatherDataViewModel.currentWeatherData.collect { weatherData -> // Collect weather data
+                    weatherData?.let { data -> // Nếu data không null
+                        updateWeatherUI(data) // Cập nhật UI với dữ liệu thời tiết
                     }
-                    delay(1000) // Cập nhật mỗi giây thay vì 10ms để giảm tài nguyên sử dụng
                 }
             }
         }
     }
 
     /**
-     * Lấy thứ trong tuần bằng tiếng Việt dựa trên ngày hiện tại
-     * @return Chuỗi thứ trong tuần bằng tiếng Việt (Ví dụ: "Thứ Hai", "Chủ nhật")
+     * Observer dữ liệu tưới nước từ WateringViewModel
      */
-    private fun getCurrentDayInVN(): String {
-        val calendar = Calendar.getInstance()
-        val daysOfWeek = arrayOf(
-            "Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"
-        )
-        return daysOfWeek[calendar.get(Calendar.DAY_OF_WEEK) - 1]
+    private fun observeWateringData() {
+        viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine tied to view lifecycle
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ observe khi Fragment active
+                wateringViewModel.wateringData.collect { wateringData -> // Collect watering data
+                    wateringData?.let { data -> // Nếu data không null
+                        updateWateringUI(data) // Cập nhật UI với dữ liệu tưới nước
+                    }
+                }
+            }
+        }
     }
 
     /**
-     * Lấy thứ hiện tại dưới dạng viết tắt (T2, T3,...)
-     * @return Chuỗi thứ viết tắt (Ví dụ: "T2", "CN")
+     * Observer trạng thái loading từ ViewModels
+     */
+    private fun observeLoadingStates() {
+        viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine tied to view lifecycle
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ observe khi Fragment active
+                wateringViewModel.isLoading.collect { isLoading -> // Collect loading state
+                    // Có thể hiển thị progress bar hoặc disable controls khi đang loading
+                    updateLoadingState(isLoading)
+                }
+            }
+        }
+    }
+
+    /**
+     * Observer lỗi từ ViewModels
+     */
+    private fun observeErrors() {
+        // Observer lỗi từ WeatherDataViewModel
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                weatherDataViewModel.error.collect { error ->
+                    error?.let { // Nếu có lỗi
+                        showError("Lỗi dữ liệu thời tiết: $it") // Hiển thị lỗi
+                        weatherDataViewModel.clearError() // Clear lỗi sau khi hiển thị
+                    }
+                }
+            }
+        }
+
+        // Observer lỗi từ WateringViewModel
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                wateringViewModel.error.collect { error ->
+                    error?.let { // Nếu có lỗi
+                        showError("Lỗi hệ thống tưới: $it") // Hiển thị lỗi
+                        wateringViewModel.clearError() // Clear lỗi sau khi hiển thị
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Observer thông báo cập nhật thành công
+     */
+    private fun observeUpdateSuccess() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                wateringViewModel.updateSuccess.collect { success ->
+                    if (success) { // Nếu cập nhật thành công
+                        // Có thể hiển thị thông báo thành công
+                        wateringViewModel.clearUpdateSuccess() // Clear flag sau khi xử lý
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Thiết lập UI components và interactions
+     */
+    private fun setupUI() {
+        setupSpinner() // Thiết lập spinner chọn ngày
+        setupTimeTimer() // Thiết lập chức năng hẹn giờ
+        setupWateringControls() // Thiết lập điều khiển tưới nước
+        setupWindowBlindsControls() // Thiết lập điều khiển rèm cửa
+    }
+
+    /**
+     * Bắt đầu các coroutines cập nhật UI
+     */
+    private fun startUIUpdates() {
+        startTimeUpdates() // Bắt đầu cập nhật thời gian
+        startBlinkAnimation() // Bắt đầu hiệu ứng nhấp nháy
+        startTimerProgressUpdates() // Bắt đầu cập nhật thanh tiến trình
+    }
+
+    // =================================
+    // UI UPDATE METHODS - Các hàm cập nhật UI
+    // =================================
+
+    /**
+     * Cập nhật UI hiển thị dữ liệu thời tiết
+     */
+    @SuppressLint("SetTextI18n") // Suppress warning về hardcoded string
+    private fun updateWeatherUI(weatherData: E_WeatherDataFirebase) {
+        try {
+            // Cập nhật TextView hiển thị nhiệt độ với null safety
+            bindingParameterSystem.tvTempParameterSystem.text =
+                weatherData.temperature?.toString()?.plus(" ℃") ?: "N/A"
+
+            // Cập nhật TextView hiển thị độ ẩm không khí với null safety
+            bindingParameterSystem.tvHumidityAirParameterSystem.text =
+                weatherData.humidity?.toString()?.plus(" %") ?: "N/A"
+
+            // Cập nhật TextView hiển thị độ ẩm đất với null safety
+            bindingParameterSystem.tvHumidityLandParameterSystem.text =
+                weatherData.humidityLand?.toString()?.plus(" %") ?: "N/A"
+
+            // Cập nhật SeekBar nhiệt độ (adjust range để hiển thị đúng)
+            bindingParameterSystem.sbTempParameterSystem.progress =
+                (weatherData.temperature?.roundToInt()?.plus(25)) ?: 0
+
+            // Cập nhật SeekBar độ ẩm không khí
+            bindingParameterSystem.sbHumidityAirParameterSystem.progress =
+                weatherData.humidity?.roundToInt() ?: 0
+
+            // Cập nhật SeekBar độ ẩm đất
+            bindingParameterSystem.sbHumidityLandParameterSystem.progress =
+                weatherData.humidityLand?.roundToInt() ?: 0
+
+            isUpdatingFromViewModel = true
+
+            bindingActivateSystem.swWaterSystem.isChecked = weatherData.status_pump
+            bindingActivateSystem.swWindowBlindsSystem.isChecked = weatherData.status_blind
+            bindingActivateSystem.swAutomaticSystem.isChecked = weatherData.auto_mode
+
+            bindingActivateSystem.npHumidityMinLandSystem.isEnabled = weatherData.auto_mode
+            bindingActivateSystem.npHumidityMaxLandSystem.isEnabled = weatherData.auto_mode
+            bindingActivateSystem.btUpdateHumidityLand.isEnabled = weatherData.auto_mode
+
+            isUpdatingFromViewModel = false
+
+
+
+        } catch (e: Exception) {
+            // Log lỗi và hiển thị thông báo cho user
+            Log.e("SystemFragment", "Error updating weather UI", e)
+            showError("Lỗi cập nhật giao diện thời tiết: ${e.message}")
+        }
+    }
+
+    /**
+     * Cập nhật UI hiển thị dữ liệu tưới nước
+     */
+    private fun updateWateringUI(wateringData: E_WateringFirebase) {
+        isUpdatingFromViewModel = true // Set flag để tránh vòng lặp
+        try {
+
+            val defaultMin = wateringData.humidity_land_min ?: 20
+            val defaultMax = wateringData.humidity_land_max ?: 80
+
+            // Setup NumberPicker Min
+            bindingActivateSystem.npHumidityMinLandSystem.apply {
+                minValue = 0
+                maxValue = 99
+                setFormatter { value -> "  $value % " }
+                value = defaultMin
+
+                setOnValueChangedListener { _, _, newMin ->
+                    // Tự động cập nhật Max NumberPicker
+                    bindingActivateSystem.npHumidityMaxLandSystem.apply {
+                        minValue = newMin + 1
+                        if (value <= newMin) value = newMin + 1
+                    }
+                }
+            }
+
+            // Setup NumberPicker Max
+            bindingActivateSystem.npHumidityMaxLandSystem.apply {
+                minValue = 1
+                maxValue = 100
+                setFormatter { value -> "  $value % " }
+                value = defaultMax
+
+                setOnValueChangedListener { _, _, newMax ->
+                    // Tự động cập nhật Min NumberPicker
+                    bindingActivateSystem.npHumidityMinLandSystem.apply {
+                        maxValue = newMax - 1
+                        if (value >= newMax) value = newMax - 1
+                    }
+                }
+            }
+
+            // Cập nhật constraints lần đầu
+            bindingActivateSystem.npHumidityMinLandSystem.maxValue = defaultMax - 1
+            bindingActivateSystem.npHumidityMaxLandSystem.minValue = defaultMin + 1
+
+            //chế độ tự động tưới
+            bindingActivateSystem.btUpdateHumidityLand.setOnClickListener{
+                val humidityLandMin = bindingActivateSystem.npHumidityMinLandSystem.value
+                val humidityLandMax = bindingActivateSystem.npHumidityMaxLandSystem.value
+                setHumidityLandMinWatering(humidityLandMin)
+                setHumidityLandMaxWatering(humidityLandMax)
+                wateringViewModel.updateField("humidity_land_max",humidityLandMax)
+                wateringViewModel.updateField("humidity_land_min",humidityLandMin)
+                Toast.makeText(
+                    context,
+                    "Đã thiết lập mức độ ẩm đất ",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            // Cập nhật switch hẹn giờ và enable/disable các controls liên quan
+            val isTimerEnabled = wateringData.status_timer == 1
+            bindingActivateSystem.swTimeTimerSystem.isChecked = isTimerEnabled
+            bindingActivateSystem.btTimerStartSystem.isEnabled = isTimerEnabled
+            bindingActivateSystem.btTimerEndSystem.isEnabled = isTimerEnabled
+            bindingActivateSystem.btSelectTimerSystem.isEnabled = isTimerEnabled
+
+            // Cập nhật hiển thị thời gian bắt đầu và kết thúc
+            val startTimeString = getTimeString(wateringData.timer_start)
+            bindingActivateSystem.tvTimerStartSystem.text = startTimeString
+            bindingParameterSystem.tvTimerParameterSystem.text = startTimeString
+            bindingActivateSystem.tvTimerEndSystem.text = getTimeString(wateringData.timer_end)
+
+            // Cập nhật hiển thị các ngày lặp lại
+            bindingActivateSystem.tvSelectDayTimerSystem.text = wateringData.repeat ?: ""
+
+        } catch (e: Exception) {
+            Log.e("SystemFragment", "Error updating watering UI", e)
+            showError("Lỗi cập nhật giao diện tưới nước: ${e.message}")
+        } finally {
+            isUpdatingFromViewModel = false // Reset flag sau khi cập nhật xong
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái loading
+     */
+    private fun updateLoadingState(isLoading: Boolean) {
+        // Có thể disable/enable các controls khi đang loading
+        // Hoặc hiển thị progress indicator
+        val alpha = if (isLoading) 0.5f else 1.0f
+        bindingActivateSystem.root.alpha = alpha
+    }
+
+    /**
+     * Hiển thị thông báo lỗi cho user
+     */
+    private fun showError(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        Log.e("SystemFragment", message)
+    }
+
+    // =================================
+    // TIME UPDATE METHODS - Các hàm cập nhật thời gian
+    // =================================
+
+    /**
+     * Bắt đầu coroutine để cập nhật thời gian real-time
+     */
+    private fun startTimeUpdates() {
+        timeUpdateJob =
+            viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine tied to view lifecycle
+                repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ chạy khi Fragment active
+                    while (isActive) { // Lặp vô hạn trong khi coroutine active
+                        val currentTime = getCurrentTime() // Lấy thời gian hiện tại
+                        val currentDayMonth = getCurrentDayMonthEndYear() // Lấy ngày tháng năm
+
+                        withContext(Dispatchers.Main) { // Switch to main thread để cập nhật UI
+                            // Cập nhật các TextView hiển thị thời gian
+                            binding.tvTimeSystem.text = currentTime.first // Hiển thị giờ:phút
+                            binding.tvTimeFormatSystem.text = currentTime.second // Hiển thị AM/PM
+                            binding.tvRankDaySystem.text =
+                                getCurrentDayInVN() // Hiển thị thứ bằng tiếng Việt
+                            binding.tvYearSystem.text = currentDayMonth.second // Hiển thị năm
+                            binding.tvDayMonthSystem.text =
+                                currentDayMonth.first // Hiển thị ngày tháng
+                        }
+                        delay(1000) // Delay 1 giây trước khi cập nhật tiếp
+                    }
+                }
+            }
+    }
+
+    /**
+     * Bắt đầu hiệu ứng nhấp nháy cho các chấm giây
+     */
+    private fun startBlinkAnimation() {
+        // Danh sách các TextView hiển thị chấm giây
+        val blinkSecondTextList: List<TextView> = listOf(
+            binding.tvTimeSecond1System,
+            binding.tvTimeSecond2System,
+            binding.tvTimeSecond3System,
+            binding.tvTimeSecond4System,
+            binding.tvTimeSecond5System,
+            binding.tvTimeSecond6System
+        )
+
+        blinkSecondJob = viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ chạy khi Fragment active
+                while (isActive) { // Lặp vô hạn
+                    // Sáng dần từ chấm 1 đến chấm 6
+                    for (i in blinkSecondTextList.indices) {
+                        withContext(Dispatchers.Main) { // Switch to main thread
+                            blinkSecondTextList[i].backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#F04E5E")) // Đổi màu sáng
+                        }
+                        delay(100) // Delay giữa mỗi chấm
+                    }
+
+                    delay(300) // Dừng lại khi tất cả đã sáng
+
+                    // Tắt dần từ chấm 6 về chấm 1
+                    for (i in blinkSecondTextList.indices.reversed()) {
+                        withContext(Dispatchers.Main) { // Switch to main thread
+                            blinkSecondTextList[i].backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#D9D9D9")) // Đổi màu tắt
+                        }
+                        delay(100) // Delay giữa mỗi chấm
+                    }
+
+                    delay(300) // Dừng lại khi tất cả đã tắt
+                }
+            }
+        }
+    }
+
+    // =================================
+    // UTILITY TIME METHODS - Các hàm tiện ích về thời gian
+    // =================================
+
+    /**
+     * Lấy thứ trong tuần bằng tiếng Việt
+     */
+    private fun getCurrentDayInVN(): String {
+        val calendar = Calendar.getInstance() // Lấy Calendar instance
+        val daysOfWeek = arrayOf( // Array tên các thứ bằng tiếng Việt
+            "Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"
+        )
+        return daysOfWeek[calendar.get(Calendar.DAY_OF_WEEK) - 1] // Return tên thứ tương ứng
+    }
+
+    /**
+     * Lấy thứ hiện tại dưới dạng viết tắt
      */
     private fun getDayShort(): String {
-        val calendar = Calendar.getInstance()
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val calendar = Calendar.getInstance() // Lấy Calendar instance
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // Lấy day of week
 
-        return when (dayOfWeek) {
+        return when (dayOfWeek) { // Map day of week thành viết tắt
             Calendar.MONDAY -> "T2"
             Calendar.TUESDAY -> "T3"
             Calendar.WEDNESDAY -> "T4"
@@ -155,260 +513,77 @@ class SystemFragment : Fragment() {
     }
 
     /**
-     * Cập nhật thời gian hiện tại
-     * @return Pair chứa chuỗi thời gian (hh : mm) và định dạng AM/PM
+     * Lấy thời gian hiện tại định dạng 12h với AM/PM
      */
     private fun getCurrentTime(): Pair<String, String> {
-        val sdfTime = SimpleDateFormat("hh : mm", Locale.getDefault())
-        val sdfAmPm = SimpleDateFormat("a", Locale.getDefault())
+        val sdfTime = SimpleDateFormat("hh : mm", Locale.getDefault()) // Formatter cho giờ:phút
+        val sdfAmPm = SimpleDateFormat("a", Locale.getDefault()) // Formatter cho AM/PM
 
-        val time = sdfTime.format(Date())
-        val amPm = sdfAmPm.format(Date())
-        return Pair(time, amPm)
+        val time = sdfTime.format(Date()) // Format thời gian
+        val amPm = sdfAmPm.format(Date()) // Format AM/PM
+        return Pair(time, amPm) // Return cặp thời gian và AM/PM
     }
 
     /**
-     * Cập nhật ngày tháng hiện tại
-     * @return Pair chứa chuỗi ngày tháng và năm
+     * Lấy ngày tháng năm hiện tại
      */
     private fun getCurrentDayMonthEndYear(): Pair<String, String> {
-        val sdfDayMonth = SimpleDateFormat("dd ' - Tháng: ' MM", Locale("vi", "VN"))
-        val sdfYear = SimpleDateFormat("yyyy", Locale.getDefault())
+        val sdfDayMonth =
+            SimpleDateFormat("dd ' - Tháng: ' MM", Locale("vi", "VN")) // Formatter ngày tháng
+        val sdfYear = SimpleDateFormat("yyyy", Locale.getDefault()) // Formatter năm
 
-        val dayMonth = sdfDayMonth.format(Date())
-        val year = sdfYear.format(Date())
-        return Pair(dayMonth, year)
+        val dayMonth = sdfDayMonth.format(Date()) // Format ngày tháng
+        val year = sdfYear.format(Date()) // Format năm
+        return Pair(dayMonth, year) // Return cặp ngày tháng và năm
     }
 
     /**
-     * Tạo hiệu ứng nhấp nháy giây trên UI
-     * Đổi màu các điểm giây mỗi giây
+     * Chuyển đổi phút trong ngày thành string HH:mm
      */
-    //hàm nháy giây với hiệu ứng mượt mà
-    private fun blinkSecond() {
-        val blinkSecondTextList: List<TextView> = listOf(
-            bindingSystem.tvTimeSecond1System,
-            bindingSystem.tvTimeSecond2System,
-            bindingSystem.tvTimeSecond3System,
-            bindingSystem.tvTimeSecond4System,
-            bindingSystem.tvTimeSecond5System,
-            bindingSystem.tvTimeSecond6System
-        )
+    private fun getTimeString(time: Int?): String {
+        if (time == null) return "00 : 00" // Return default nếu null
 
-        blinkSecondJob = lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    // Sáng dần từ 1 đến 6
-                    for (i in blinkSecondTextList.indices) {
-                        withContext(Dispatchers.Main) {
-                            blinkSecondTextList[i].backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#F04E5E"))
-                        }
-                        delay(100) // Tạo độ trễ giữa mỗi chấm sáng
-                    }
-
-                    delay(300) // Dừng lại một chút khi tất cả đã sáng
-
-                    // Tắt dần từ 6 về 1
-                    for (i in blinkSecondTextList.indices.reversed()) {
-                        withContext(Dispatchers.Main) {
-                            blinkSecondTextList[i].backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#D9D9D9"))
-                        }
-                        delay(100) // Tạo độ trễ giữa mỗi chấm tắt
-                    }
-
-                    delay(300) // Dừng lại một chút khi tất cả đã tắt
-                }
-            }
-        }
+        val hours = time / 60 // Tính số giờ
+        val minute = time % 60 // Tính số phút
+        val houseString = if (hours < 10) ("0$hours") else ("$hours") // Format giờ với leading zero
+        val minuteString =
+            if (minute < 10) ("0$minute") else ("$minute") // Format phút với leading zero
+        return ("$houseString : $minuteString") // Return formatted time
     }
 
     /**
-     * Thiết lập chức năng đặt thời gian bắt đầu và kết thúc tưới nước
-     * Sử dụng TimePickerDialog để người dùng chọn thời gian
-     */
-    @SuppressLint("SimpleDateFormat")
-    private fun timeTimer() {
-        var startTime: Calendar? = null
-        var endTime: Calendar? = null
-
-        // Thiết lập nút chọn thời gian bắt đầu
-        bindingActivateSystem.btTimerStartSystem.setOnClickListener {
-            val cal = Calendar.getInstance()
-            val timeSetListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-                cal.set(Calendar.HOUR_OF_DAY, hour)
-                cal.set(Calendar.MINUTE, minute)
-                startTime = cal.clone() as Calendar
-                val timeFormatted = SimpleDateFormat("HH : mm").format(cal.time)
-                bindingActivateSystem.tvTimerStartSystem.text = timeFormatted
-
-                // Nếu đã bật timer, cập nhật firebase
-                if (bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                    FirebaseWatering.setWateringTimerStart(hour * 60 + minute)
-                }
-            }
-            TimePickerDialog(
-                requireContext(),
-                timeSetListener,
-                cal.get(Calendar.HOUR_OF_DAY),
-                cal.get(Calendar.MINUTE),
-                true
-            ).show()
-        }
-
-        // Thiết lập nút chọn thời gian kết thúc
-        bindingActivateSystem.btTimerEndSystem.setOnClickListener {
-            val cal = Calendar.getInstance()
-            val timeSetListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-                cal.set(Calendar.HOUR_OF_DAY, hour)
-                cal.set(Calendar.MINUTE, minute)
-
-                // Kiểm tra đã chọn thời gian bắt đầu chưa
-                if (startTime == null) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Vui lòng chọn thời gian bắt đầu trước!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@OnTimeSetListener
-                }
-
-                // Kiểm tra thời gian kết thúc > thời gian bắt đầu
-                if (cal.timeInMillis <= startTime!!.timeInMillis) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Thời gian kết thúc phải lớn hơn thời gian bắt đầu!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@OnTimeSetListener
-                }
-
-                endTime = cal.clone() as Calendar
-                val timeFormatted = SimpleDateFormat("HH : mm").format(cal.time)
-                bindingActivateSystem.tvTimerEndSystem.text = timeFormatted
-
-                // Nếu đã bật timer, cập nhật firebase
-                if (bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                    FirebaseWatering.setWateringTimerEnd(hour * 60 + minute)
-                }
-            }
-            TimePickerDialog(
-                requireContext(),
-                timeSetListener,
-                cal.get(Calendar.HOUR_OF_DAY),
-                cal.get(Calendar.MINUTE),
-                true
-            ).show()
-        }
-    }
-
-    /**
-     * Tách chuỗi thời gian thành giờ và phút
-     * @param timeString Chuỗi thời gian định dạng "HH : mm"
-     * @return Pair<Int, Int> chứa giờ và phút, hoặc null nếu không hợp lệ
+     * Extract giờ và phút từ time string
      */
     private fun extractHourMinute(timeString: String): Pair<Int, Int>? {
         return try {
-            val timeParts = timeString.split(":").map { it.trim() }
-            val hour = timeParts[0].toInt()
-            val minute = timeParts[1].toInt()
+            val timeParts = timeString.split(":").map { it.trim() } // Split và trim whitespace
+            val hour = timeParts[0].toInt() // Parse giờ
+            val minute = timeParts[1].toInt() // Parse phút
 
-            if (hour in 0..23 && minute in 0..59) {
-                Pair(hour, minute)
+            if (hour in 0..23 && minute in 0..59) { // Validate range
+                Pair(hour, minute) // Return valid pair
             } else {
-                null
+                null // Return null nếu invalid
             }
         } catch (e: Exception) {
-            null
+            null // Return null nếu parse error
         }
     }
 
-    /**
-     * Thiết lập chức năng chọn các ngày trong tuần để tưới cây
-     * Hiển thị dialog đa lựa chọn cho người dùng
-     */
-    private fun setSpinner() {
-        val items = arrayOf("Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật")
-        val shortItems = arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-        val dayOrderMap =
-            mapOf("T2" to 1, "T3" to 2, "T4" to 3, "T5" to 4, "T6" to 5, "T7" to 6, "CN" to 7)
-        val selectItems = BooleanArray(items.size)
-        val selectList = mutableListOf<String>()
-
-        bindingActivateSystem.btSelectTimerSystem.setOnClickListener {
-            AlertDialog.Builder(requireContext()).apply {
-                setTitle("Chọn các mục")
-                setMultiChoiceItems(items, selectItems) { _, which, isChecked ->
-                    selectItems[which] = isChecked
-                    if (isChecked) {
-                        if (!selectList.contains(shortItems[which])) {
-                            selectList.add(shortItems[which])
-                        }
-                    } else {
-                        selectList.remove(shortItems[which])
-                    }
-                }
-                setPositiveButton("OK") { _, _ ->
-                    val sortedList = selectList.sortedBy { dayOrderMap[it] ?: Int.MAX_VALUE }
-                    val selectedText =
-                        if (selectList.size == 7) "Mỗi ngày" else sortedList.joinToString(", ")
-                    bindingActivateSystem.tvSelectDayTimerSystem.text = selectedText
-
-                    // Cập nhật Firebase nếu timer đã được bật
-                    if (bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                        FirebaseWatering.setRepeat(selectedText)
-                    }
-                }
-                setNegativeButton("Hủy", null)
-            }.show()
-        }
-    }
+    // =================================
+    // TIMER PROGRESS METHODS - Các hàm xử lý thanh tiến trình hẹn giờ
+    // =================================
 
     /**
-     * Cập nhật dữ liệu thời tiết từ Firebase lên giao diện
-     * Hiển thị nhiệt độ, độ ẩm không khí và độ ẩm đất
-     */
-    private fun updateWeather() {
-        FirebaseWeatherData.addListener { weatherData ->
-            try {
-                // Cập nhật giá trị nhiệt độ và độ ẩm lên TextView
-                bindingParameterSystem.tvTempParameterSystem.text =
-                    weatherData.temperature?.toString()?.plus(" ℃") ?: "N/A"
-                bindingParameterSystem.tvHumidityAirParameterSystem.text =
-                    weatherData.humidity?.toString()?.plus(" %") ?: "N/A"
-                bindingParameterSystem.tvHumidityLandParameterSystem.text =
-                    weatherData.humidityLand?.toString()?.plus(" %") ?: "N/A"
-
-                // Cập nhật giá trị lên thanh SeekBar
-                bindingParameterSystem.sbTempParameterSystem.progress =
-                    (weatherData.temperature?.roundToInt()?.plus(25)) ?: 0
-                bindingParameterSystem.sbHumidityAirParameterSystem.progress =
-                    weatherData.humidity?.roundToInt() ?: 0
-                bindingParameterSystem.sbHumidityLandParameterSystem.progress =
-                    weatherData.humidityLand?.roundToInt() ?: 0
-            } catch (e: Exception) {
-                // Xử lý lỗi nếu có
-                Toast.makeText(context, "Lỗi cập nhật dữ liệu: ${e.message}", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-    }
-
-    /**
-     * Khởi động coroutine cập nhật thanh tiến trình hẹn giờ
-     * Được gọi từ onCreateView để bắt đầu cập nhật liên tục
+     * Bắt đầu cập nhật thanh tiến trình hẹn giờ
      */
     private fun startTimerProgressUpdates() {
-        // Hủy job cũ nếu đang chạy
-        timerProgressUpdateJob?.cancel()
+        timerProgressUpdateJob?.cancel() // Hủy job cũ nếu có
 
-        // Khởi tạo job mới để cập nhật tiến trình hẹn giờ
-        timerProgressUpdateJob = lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    // Cập nhật UI từ trong coroutine
-                    updateProgressOnWateringTimer()
+        timerProgressUpdateJob = viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine mới
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ chạy khi active
+                while (isActive) { // Lặp vô hạn
+                    updateProgressOnWateringTimer() // Cập nhật progress bar
                     delay(1000) // Cập nhật mỗi giây
                 }
             }
@@ -416,168 +591,260 @@ class SystemFragment : Fragment() {
     }
 
     /**
-     * Cập nhật thanh tiến trình cho chức năng hẹn giờ tưới nước
-     * Hiển thị thanh tiến độ dựa vào thời gian và ngày đã đặt
+     * Cập nhật thanh tiến trình cho hẹn giờ tưới nước
      */
     private fun updateProgressOnWateringTimer() {
         try {
+            // Nếu timer không bật, set progress về 0
             if (!bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                // Nếu timer không bật đưa thanh về 0
-                bindingParameterSystem.sbTimerParameterSystem.progress = 0
-                return
-            }
-            // Kiểm tra xem hôm nay có phải là ngày để tưới nước không
-            val isSelectDay = isWateringTimerOfDay()
-            if (!isSelectDay) {
-                // Nếu không phải ngày đã chọn, progress là 0
                 bindingParameterSystem.sbTimerParameterSystem.progress = 0
                 return
             }
 
+            // Kiểm tra hôm nay có phải ngày tưới không
+            val isSelectDay = isWateringTimerOfDay()
+            if (!isSelectDay) {
+                bindingParameterSystem.sbTimerParameterSystem.progress = 0
+                return
+            }
+
+            // Lấy thời gian bắt đầu và kết thúc
             val startTimeText = bindingActivateSystem.tvTimerStartSystem.text.toString()
             val endTimeText = bindingActivateSystem.tvTimerEndSystem.text.toString()
 
-            val startTime = extractHourMinute(startTimeText)
-            val endTime = extractHourMinute(endTimeText)
+            val startTime = extractHourMinute(startTimeText) // Parse start time
+            val endTime = extractHourMinute(endTimeText) // Parse end time
 
-            // Chuyển đổi thành số phút trong ngày
-            val startTimeInMinutes = startTime?.first!! * 60 + startTime.second
-            val endTimeInMinutes = endTime?.first!! * 60 + endTime.second
+            if (startTime == null || endTime == null) return // Return nếu parse lỗi
 
-            // Thời gian hiện tại tính theo phút và giây (để có hiệu ứng mượt mà hơn)
+            // Chuyển đổi thành phút trong ngày
+            val startTimeInMinutes = startTime.first * 60 + startTime.second
+            val endTimeInMinutes = endTime.first * 60 + endTime.second
+
+            // Thời gian hiện tại tính theo phút và giây
             val calendar = Calendar.getInstance()
             val currentTimeInMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 +
                     calendar.get(Calendar.MINUTE) +
                     calendar.get(Calendar.SECOND) / 60.0
 
-            // Tính toán progress dựa vào thời gian hiện tại và khoảng thời gian hẹn giờ
-            val progress = if (currentTimeInMinutes < startTimeInMinutes) {
-                // Chưa tới giờ bắt đầu
-                100
-            } else if (currentTimeInMinutes >= endTimeInMinutes) {
-                // Hết giờ tưới nước
-                0
-            } else {
-                // Đang nằm trong khoảng hẹn giờ tưới nước
-                val totalTimeRange = endTimeInMinutes - startTimeInMinutes
-                val currentTimeRange = currentTimeInMinutes - startTimeInMinutes
-                val progressValue = 100 - ((currentTimeRange / totalTimeRange) * 100).toInt()
-                progressValue.coerceIn(0, 100)
+            // Tính progress dựa vào thời gian hiện tại
+            val progress = when {
+                currentTimeInMinutes < startTimeInMinutes -> 100 // Chưa tới giờ bắt đầu
+                currentTimeInMinutes >= endTimeInMinutes -> 0 // Hết giờ tưới
+                else -> { // Đang trong khoảng tưới
+                    val totalTimeRange = endTimeInMinutes - startTimeInMinutes
+                    val currentTimeRange = currentTimeInMinutes - startTimeInMinutes
+                    val progressValue = 100 - ((currentTimeRange / totalTimeRange) * 100).toInt()
+                    progressValue.coerceIn(0, 100) // Clamp trong range 0-100
+                }
             }
-            bindingParameterSystem.sbTimerParameterSystem.progress = progress
+
+            bindingParameterSystem.sbTimerParameterSystem.progress = progress // Set progress
+
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("SystemFragment", "Error updating timer progress", e)
         }
     }
 
     /**
-     * Kiểm tra xem ngày hiện tại có nằm trong danh sách ngày đã chọn hay không
-     * @return true nếu ngày hiện tại được chọn hoặc đã chọn "Mỗi ngày", false trong các trường hợp khác
+     * Kiểm tra ngày hiện tại có trong danh sách ngày được chọn không
      */
     private fun isWateringTimerOfDay(): Boolean {
         val selectDaysText = bindingActivateSystem.tvSelectDayTimerSystem.text.toString()
 
-        // Nếu là mỗi ngày trả về true
+        // Nếu chọn "Mỗi ngày" thì return true
         if (selectDaysText == "Mỗi ngày") {
             return true
         }
 
-        // Lấy thời gian hiện tại dưới dạng viết tắt
-        val currentDayShort = getDayShort()
+        val currentDayShort = getDayShort() // Lấy thứ hiện tại dạng viết tắt
+        return selectDaysText.contains(currentDayShort) // Check có trong list không
+    }
 
-        // Kiểm tra thứ hiện tại nằm trong thứ được chọn không
-        return selectDaysText.contains(currentDayShort)
+    // =================================
+    // UI SETUP METHODS - Các hàm thiết lập UI
+    // =================================
+
+    /**
+     * Thiết lập spinner chọn ngày trong tuần
+     */
+    private fun setupSpinner() {
+        val items = arrayOf("Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật")
+        val shortItems = arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+        val dayOrderMap =
+            mapOf("T2" to 1, "T3" to 2, "T4" to 3, "T5" to 4, "T6" to 5, "T7" to 6, "CN" to 7)
+        val selectItems = BooleanArray(items.size) // Array để track selected items
+        val selectList = mutableListOf<String>() // List chứa các item đã chọn
+
+        // Set click listener cho button chọn ngày
+        bindingActivateSystem.btSelectTimerSystem.setOnClickListener {
+            AlertDialog.Builder(requireContext()).apply { // Tạo AlertDialog
+                setTitle("Chọn các mục") // Set title cho dialog
+                setMultiChoiceItems(
+                    items,
+                    selectItems
+                ) { _, which, isChecked -> // Set multi choice items
+                    selectItems[which] = isChecked // Update selected state
+                    if (isChecked) { // Nếu được chọn
+                        if (!selectList.contains(shortItems[which])) { // Nếu chưa có trong list
+                            selectList.add(shortItems[which]) // Thêm vào list
+                        }
+                    } else { // Nếu bỏ chọn
+                        selectList.remove(shortItems[which]) // Remove khỏi list
+                    }
+                }
+                setPositiveButton("OK") { _, _ -> // Set positive button
+                    // Sort list theo thứ tự trong tuần
+                    val sortedList = selectList.sortedBy { dayOrderMap[it] ?: Int.MAX_VALUE }
+                    // Tạo text hiển thị
+                    val selectedText =
+                        if (selectList.size == 7) "Mỗi ngày" else sortedList.joinToString(", ")
+                    bindingActivateSystem.tvSelectDayTimerSystem.text = selectedText // Update UI
+
+                    // Cập nhật ViewModel nếu timer đã bật
+                    if (bindingActivateSystem.swTimeTimerSystem.isChecked && !isUpdatingFromViewModel) {
+                        wateringViewModel.updateField("repeat", selectedText)
+                    }
+                }
+                setNegativeButton("Hủy", null) // Set negative button
+            }.show() // Show dialog
+        }
     }
 
     /**
-     * Thiết lập các listener và chức năng bật/tắt tưới nước
-     * Cập nhật và đồng bộ dữ liệu với Firebase
+     * Thiết lập chức năng chọn thời gian hẹn giờ
      */
-    private fun OnAndOffWarning() {
-        isUpdatingFromFirebase = true
-        try {
-            // Thêm listener cho trạng thái tưới nước từ Firebase
-            FirebaseWatering.addStatusListener { data ->
-                bindingActivateSystem.swWaterSystem.isChecked = data == 1
-            }
+    @SuppressLint("SimpleDateFormat") // Suppress warning về SimpleDateFormat
+    private fun setupTimeTimer() {
+        var startTime: Calendar? = null // Biến lưu thời gian bắt đầu
+        var endTime: Calendar? = null // Biến lưu thời gian kết thúc
 
-            // Thêm listener cho chế độ tự động dựa trên độ ẩm đất
-            FirebaseWatering.addStatusHumidityLandListener { data ->
-                isUpdatingFromFirebase = true
-                try {
-                    bindingActivateSystem.swAutomaticSystem.isChecked = data == 1
-                    bindingActivateSystem.npHumidityLandSystem.isEnabled = data == 1
-                } finally {
-                    isUpdatingFromFirebase = false
+        // Thiết lập button chọn thời gian bắt đầu
+        bindingActivateSystem.btTimerStartSystem.setOnClickListener {
+            val cal = Calendar.getInstance() // Lấy Calendar instance
+            val timeSetListener =
+                TimePickerDialog.OnTimeSetListener { _, hour, minute -> // Listener khi chọn time
+                    cal.set(Calendar.HOUR_OF_DAY, hour) // Set giờ
+                    cal.set(Calendar.MINUTE, minute) // Set phút
+                    startTime = cal.clone() as Calendar // Clone calendar
+                    val timeFormatted = SimpleDateFormat("HH : mm").format(cal.time) // Format time
+                    bindingActivateSystem.tvTimerStartSystem.text = timeFormatted // Update UI
+
+                    // Cập nhật ViewModel nếu timer đã bật
+                    if (bindingActivateSystem.swTimeTimerSystem.isChecked && !isUpdatingFromViewModel) {
+                        wateringViewModel.updateField("timer_start", hour * 60 + minute)
+                    }
                 }
-            }
-
-            // Thêm listener cho trạng thái hẹn giờ
-            FirebaseWatering.addStatusTimerListener { data ->
-                isUpdatingFromFirebase = true
-                try {
-                    val isTimerEnabled = data == 1
-                    bindingActivateSystem.swTimeTimerSystem.isChecked = isTimerEnabled
-
-                    // Cập nhật trạng thái các control liên quan
-                    bindingActivateSystem.btTimerStartSystem.isEnabled = isTimerEnabled
-                    bindingActivateSystem.btTimerEndSystem.isEnabled = isTimerEnabled
-                    bindingActivateSystem.btSelectTimerSystem.isEnabled = isTimerEnabled
-                } finally {
-                    isUpdatingFromFirebase = false
-                }
-            }
-
-            // Thêm listener cho thời gian bắt đầu
-            FirebaseWatering.addTimerStartListener { data ->
-                val timeString = getTimeString(data)
-                bindingActivateSystem.tvTimerStartSystem.text = timeString
-                bindingParameterSystem.tvTimerParameterSystem.text = timeString
-            }
-
-            // Thêm listener cho thời gian kết thúc
-            FirebaseWatering.addTimerEndListener { data ->
-                bindingActivateSystem.tvTimerEndSystem.text = getTimeString(data)
-            }
-
-            // Thêm listener cho các ngày lặp lại
-            FirebaseWatering.addRepeatListener { data ->
-                bindingActivateSystem.tvSelectDayTimerSystem.text = data
-            }
-        } finally {
-            isUpdatingFromFirebase = false
+            // Show TimePickerDialog
+            TimePickerDialog(
+                requireContext(),
+                timeSetListener,
+                cal.get(Calendar.HOUR_OF_DAY),
+                cal.get(Calendar.MINUTE),
+                true // Use 24h format
+            ).show()
         }
 
-        // Thiết lập listener cho công tắc tưới nước thủ công
-        bindingActivateSystem.swWaterSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromFirebase) {
-                FirebaseWatering.setWateringStatus(if (checked) 1 else 0)
-            }
-        }
+        // Thiết lập button chọn thời gian kết thúc
+        bindingActivateSystem.btTimerEndSystem.setOnClickListener {
+            val cal = Calendar.getInstance() // Lấy Calendar instance
+            val timeSetListener =
+                TimePickerDialog.OnTimeSetListener { _, hour, minute -> // Listener khi chọn time
+                    cal.set(Calendar.HOUR_OF_DAY, hour) // Set giờ
+                    cal.set(Calendar.MINUTE, minute) // Set phút
 
-        // Thiết lập listener cho công tắc tưới nước tự động theo độ ẩm đất
+                    // Validation: check đã chọn start time chưa
+                    if (startTime == null) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Vui lòng chọn thời gian bắt đầu trước!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@OnTimeSetListener
+                    }
+
+                    // Validation: check end time > start time
+                    if (cal.timeInMillis <= startTime!!.timeInMillis) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Thời gian kết thúc phải lớn hơn thời gian bắt đầu!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@OnTimeSetListener
+                    }
+
+                    endTime = cal.clone() as Calendar // Clone calendar
+                    val timeFormatted = SimpleDateFormat("HH : mm").format(cal.time) // Format time
+                    bindingActivateSystem.tvTimerEndSystem.text = timeFormatted // Update UI
+
+                    // Cập nhật ViewModel nếu timer đã bật
+                    if (bindingActivateSystem.swTimeTimerSystem.isChecked && !isUpdatingFromViewModel) {
+                        wateringViewModel.updateField("timer_end", hour * 60 + minute)
+                    }
+                }
+            // Show TimePickerDialog
+            TimePickerDialog(
+                requireContext(),
+                timeSetListener,
+                cal.get(Calendar.HOUR_OF_DAY),
+                cal.get(Calendar.MINUTE),
+                true // Use 24h format
+            ).show()
+        }
+    }
+
+    /**
+     * Thiết lập các điều khiển tưới nước
+     */
+    private fun setupWateringControls() {
+        // Set click listener cho chế độ tự động
         bindingActivateSystem.swAutomaticSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromFirebase) {
-                FirebaseWatering.setWateringStatusHumidityLand(if (checked) 1 else 0)
-                bindingActivateSystem.npHumidityLandSystem.isEnabled = checked
+            if (!isUpdatingFromViewModel) {
+                setAutoWatering(checked)
+            }
 
-                if (checked) {
-                    FirebaseWatering.setWateringHumidityLand(bindingActivateSystem.npHumidityLandSystem.value.toDouble())
-                }
+            if (checked) {
+                //tắt chế độ điều khiển màn che
+                bindingActivateSystem.swWindowBlindsSystem.isChecked = false
+                bindingActivateSystem.swWindowBlindsSystem.isClickable = false
+                bindingActivateSystem.swWindowBlindsSystem.isFocusable = false
+                //tắt chế độ điều khiển máy bơm
+                bindingActivateSystem.swWaterSystem.isChecked = false
+                bindingActivateSystem.swWaterSystem.isClickable = false
+                bindingActivateSystem.swWaterSystem.isFocusable = false
+
+            } else {
+                //bật lại chế độ điều khiển thủ công
+                bindingActivateSystem.swWindowBlindsSystem.isClickable = true
+                bindingActivateSystem.swWindowBlindsSystem.isFocusable = true
+                //bạt lại chế độ điêu fkhirrnt máy bơm thủ công
+                bindingActivateSystem.swWaterSystem.isClickable = true
+                bindingActivateSystem.swWaterSystem.isFocusable = true
             }
         }
 
-        // Thiết lập listener cho công tắc hẹn giờ tưới
-        bindingActivateSystem.swTimeTimerSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromFirebase) {
-                FirebaseWatering.setWateringStatusTimer(if (checked) 1 else 0)
+        // Set click listener cho switch tưới nước thủ công
+        bindingActivateSystem.swWaterSystem.setOnCheckedChangeListener { _, checked ->
+            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
+                wateringViewModel.setWateringStatus(if (checked) 1 else 0) // Update ViewModel
+                if (checked) openWatering() else closeWatering() // Send MQTT command
+            }
+        }
 
-                // Cập nhật trạng thái các control liên quan
+        // Set click listener cho switch hẹn giờ
+        bindingActivateSystem.swTimeTimerSystem.setOnCheckedChangeListener { _, checked ->
+            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
+                wateringViewModel.updateField(
+                    "status_timer",
+                    if (checked) 1 else 0
+                ) // Update ViewModel
+
+                // Enable/disable related controls
                 bindingActivateSystem.btTimerStartSystem.isEnabled = checked
                 bindingActivateSystem.btTimerEndSystem.isEnabled = checked
                 bindingActivateSystem.btSelectTimerSystem.isEnabled = checked
 
-                // Cập nhật thời gian khi bật timer
+                // Update related fields nếu bật timer
                 if (checked) {
                     val timeTextStart = bindingActivateSystem.tvTimerStartSystem.text.toString()
                     val timeStart = extractHourMinute(timeTextStart)
@@ -587,142 +854,241 @@ class SystemFragment : Fragment() {
 
                     val repeat = bindingActivateSystem.tvSelectDayTimerSystem.text.toString()
 
-                    if (timeStart != null) {
-                        FirebaseWatering.setWateringTimerStart(timeStart.first * 60 + timeStart.second)
+                    // Update các field nếu có data
+                    timeStart?.let {
+                        wateringViewModel.updateField(
+                            "timer_start",
+                            it.first * 60 + it.second
+                        )
                     }
-
-                    if (timeEnd != null) {
-                        FirebaseWatering.setWateringTimerEnd(timeEnd.first * 60 + timeEnd.second)
+                    timeEnd?.let {
+                        wateringViewModel.updateField(
+                            "timer_end",
+                            it.first * 60 + it.second
+                        )
                     }
-
                     if (repeat.isNotEmpty()) {
-                        FirebaseWatering.setRepeat(repeat)
+                        wateringViewModel.updateField("repeat", repeat)
                     }
                 }
             }
         }
 
-        // Thiết lập listeners cho TextViews
+        // Set listeners cho TextViews để sync với ViewModel khi thay đổi
         bindingActivateSystem.tvTimerStartSystem.doAfterTextChanged { text ->
-            if (!isUpdatingFromFirebase) {
+            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
                 val newTimeStart = extractHourMinute(text.toString())
                 if (newTimeStart != null && bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                    FirebaseWatering.setWateringTimerStart(newTimeStart.first * 60 + newTimeStart.second)
+                    wateringViewModel.updateField(
+                        "timer_start",
+                        newTimeStart.first * 60 + newTimeStart.second
+                    )
                 }
             }
         }
 
         bindingActivateSystem.tvTimerEndSystem.doAfterTextChanged { text ->
-            if (!isUpdatingFromFirebase) {
+            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
                 val newTimeEnd = extractHourMinute(text.toString())
                 if (newTimeEnd != null && bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                    FirebaseWatering.setWateringTimerEnd(newTimeEnd.first * 60 + newTimeEnd.second)
+                    wateringViewModel.updateField(
+                        "timer_end",
+                        newTimeEnd.first * 60 + newTimeEnd.second
+                    )
                 }
             }
         }
 
-        // Thiết lập listener cho việc thay đổi giá trị ngày lặp lại
         bindingActivateSystem.tvSelectDayTimerSystem.doAfterTextChanged { text ->
-            if (!isUpdatingFromFirebase) {
-                val new = text.toString()
+            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
+                val newRepeat = text.toString()
                 if (bindingActivateSystem.swTimeTimerSystem.isChecked) {
-                    FirebaseWatering.setRepeat(new)
+                    wateringViewModel.updateField("repeat", newRepeat)
                 }
             }
         }
     }
 
     /**
-     * Chuyển đổi thời gian từ số phút trong ngày thành chuỗi định dạng "HH : mm"
-     * @param time Thời gian tính bằng phút từ đầu ngày, null nếu không có dữ liệu
-     * @return Chuỗi định dạng "HH : mm", trả về "00 : 00" nếu time là null
+     * Thiết lập các điều khiển rèm cửa
      */
-    private fun getTimeString(time: Int?): String {
-        if (time == null) return "00 : 00"
-
-        val house = time / 60
-        val minute = time % 60
-        val houseString = if (house < 10) ("0$house") else ("$house")
-        val minuteString = if (minute < 10) ("0$minute") else ("$minute")
-        return ("$houseString : $minuteString")
-    }
-
-    /**
-     * Thiết lập các điều khiển và listeners cho chức năng tưới nước tự động
-     * Khởi tạo giá trị NumberPicker cho độ ẩm đất và xử lý sự kiện
-     */
-    private fun wateringAutomatic() {
-        isUpdatingFromFirebase = true
-        try {
-            // Khởi tạo trạng thái ban đầu từ Firebase
-            bindingActivateSystem.swAutomaticSystem.isChecked =
-                FirebaseWatering.getStatusHumidityLand()
-            bindingActivateSystem.swWaterSystem.isChecked = FirebaseWatering.getStatus()
-
-            // Thiết lập NumberPicker để chọn ngưỡng độ ẩm đất
-            bindingActivateSystem.npHumidityLandSystem.let { i ->
-                i.maxValue = 100
-                i.minValue = 0
-                i.setFormatter { value -> "  $value % " }
-                i.value = 25
-                i.isEnabled = bindingActivateSystem.swAutomaticSystem.isChecked
-            }
-        } finally {
-            isUpdatingFromFirebase = false
-        }
-
-        // Đã thiết lập listener cho swAutomaticSystem trong OnAndOffWarning()
-
-        // Xử lý sự kiện khi giá trị NumberPicker thay đổi
-        bindingActivateSystem.npHumidityLandSystem.setOnValueChangedListener { _, _, newVal ->
-            if (!isUpdatingFromFirebase && bindingActivateSystem.swAutomaticSystem.isChecked) {
-                FirebaseWatering.setWateringHumidityLand(newVal.toDouble())
-            }
-        }
-    }
-
-    /**
-     * Thiết lập các điều khiển và listeners cho chức năng rèm cửa
-     * Xử lý đồng bộ hóa dữ liệu với Firebase
-     */
+    @SuppressLint("SetTextI18n") // Suppress warning về hardcoded string
     private fun setupWindowBlindsControls() {
-        isUpdatingFromFirebase = true
-        try {
-            // Thêm listener cho trạng thái rèm cửa thủ công
-            FirebaseWindowBlinds.addStatusListener { data ->
-                isUpdatingFromFirebase = true
-                try {
-                    bindingActivateSystem.swWindowBlindsSystem.isChecked = data == 1
-                } finally {
-                    isUpdatingFromFirebase = false
-                }
-            }
-
-            // Thêm listener cho trạng thái rèm cửa tự động
-            FirebaseWindowBlinds.addStatusAutomaticListener { data ->
-                isUpdatingFromFirebase = true
-                try {
-                    bindingActivateSystem.swWindowBlindsAutomaticSystem.isChecked = data == 1
-                } finally {
-                    isUpdatingFromFirebase = false
-                }
-            }
-        } finally {
-            isUpdatingFromFirebase = false
-        }
-
-        // Xử lý sự kiện thay đổi trạng thái rèm cửa thủ công
+        // Set listener cho switch rèm cửa thủ công
         bindingActivateSystem.swWindowBlindsSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromFirebase) {
-                FirebaseWindowBlinds.setWindowBlindsStatus(if (checked) 1 else 0)
+            if (!isUpdatingFromViewModel) {
+                if (checked) openBlind() else closeBlind() // Send MQTT command
             }
         }
 
-        // Xử lý sự kiện thay đổi trạng thái rèm cửa tự động
-        bindingActivateSystem.swWindowBlindsAutomaticSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromFirebase) {
-                FirebaseWindowBlinds.setWindowBlindsStatusAutomatic(if (checked) 1 else 0)
-            }
+    }
+
+    // =================================
+    // MQTT COMMAND METHODS - Các hàm gửi lệnh MQTT
+    // =================================
+
+    /**
+     * Mở rèm cửa thủ công
+     */
+    private fun openBlind() {
+        val now = System.currentTimeMillis()
+        if (now - mqttCommandTime < MQTT_DELAY) {
+            Log.d("SystemFragment", "MQTT too fast, skipped")
+            return
         }
+        mqttCommandTime = now
+        if (mqttHandler.isConnected()) { // Check MQTT connection
+            mqttHandler.setStatusBlind(true) // Send command
+            Toast.makeText(context, "Đã mở màn che", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Đóng rèm cửa thủ công
+     */
+    private fun closeBlind() {
+        val now = System.currentTimeMillis()
+        if (now - mqttCommandTime < MQTT_DELAY) {
+            Log.d("SystemFragment", "MQTT too fast, skipped")
+            return
+        }
+        mqttCommandTime = now
+
+        if (mqttHandler.isConnected()) { // Check MQTT connection
+            mqttHandler.setStatusBlind(false) // Send command
+            Toast.makeText(context, "Đã đóng màn che", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setAutoWatering(enabled: Boolean) {
+        val now = System.currentTimeMillis()
+        if (now - mqttCommandTime < MQTT_DELAY) {
+            Log.d("SystemFragment", "MQTT too fast, skipped")
+            return
+        }
+        mqttCommandTime = now
+
+        if (mqttHandler.isConnected()) {
+            mqttHandler.setAutoWatering(enabled)
+            val mode = if (enabled) "tự động" else "thủ công"
+            Toast.makeText(context, "Chế độ: $mode", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openWatering() {
+        val now = System.currentTimeMillis()
+        if (now - mqttCommandTime < MQTT_DELAY) return
+        mqttCommandTime = now
+
+        if (mqttHandler.isConnected()) {
+            mqttHandler.setStatusWatering(true)
+            Toast.makeText(context, "Bật máy bơm", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun closeWatering() {
+        val now = System.currentTimeMillis()
+        if (now - mqttCommandTime < MQTT_DELAY) return
+        mqttCommandTime = now
+
+        if (mqttHandler.isConnected()) {
+            mqttHandler.setStatusWatering(false)
+            Toast.makeText(context, "Tắt máy bơm", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Thiết lập độ ẩm đất tối đa
+     */
+    private fun setHumidityLandMaxWatering(value: Int) {
+        if (mqttHandler.isConnected()) { // Check MQTT connection
+            mqttHandler.setHumidityLandMaxWatering(value) // Send command
+        } else {
+            Toast.makeText(context, "Chưa kết nối MQTT", Toast.LENGTH_SHORT).show()
+            mqttHandler.connect() // Try reconnect
+        }
+    }
+
+    /**
+     * Thiết lập độ ẩm đất tối thiểu
+     */
+    private fun setHumidityLandMinWatering(value: Int) {
+        if (mqttHandler.isConnected()) { // Check MQTT connection
+            mqttHandler.setHumidityLandMinWatering(value) // Send command
+        } else {
+            Toast.makeText(context, "Chưa kết nối MQTT", Toast.LENGTH_SHORT).show()
+            mqttHandler.connect() // Try reconnect
+        }
+    }
+
+    // =================================
+    // MQTT CALLBACK METHODS - Các callback từ MQTT
+    // =================================
+
+    /**
+     * Callback khi MQTT kết nối thành công
+     */
+    override fun onConnected() {
+        Log.d("MQTT", "Kết nối MQTT thành công") // Log success
+        activity?.runOnUiThread { // Switch to main thread
+            Toast.makeText(context, "Đã kết nối MQTT thành công", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Callback khi MQTT mất kết nối
+     */
+    override fun onDisconnected() {
+        Log.w("MQTT", "Mất kết nối MQTT") // Log disconnection
+        activity?.runOnUiThread { // Switch to main thread
+            Toast.makeText(context, "Mất kết nối MQTT", Toast.LENGTH_SHORT).show()
+            mqttHandler.connect() // Try reconnect
+        }
+    }
+
+    override fun onMessageReceived(topic: String, message: String) {
+
+    }
+
+    /**
+     * Callback khi MQTT kết nối thất bại
+     */
+    override fun onConnectionFailed(exception: Throwable?) {
+        Log.e("MQTT", "Kết nối MQTT thất bại", exception) // Log error
+        activity?.runOnUiThread { // Switch to main thread
+            Toast.makeText(
+                context,
+                "Kết nối MQTT thất bại: ${exception?.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+            // Thử kết nối lại sau 5 giây
+            Handler(Looper.getMainLooper()).postDelayed({
+                mqttHandler.connect()
+            }, 5000)
+        }
+    }
+
+    // =================================
+    // LIFECYCLE METHODS - Quản lý lifecycle
+    // =================================
+
+    /**
+     * Called khi view bị destroy
+     * Cleanup resources để tránh memory leaks
+     */
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        // Cleanup MQTT
+        mqttHandler.disconnect() // Ngắt kết nối MQTT
+        mqttHandler.cleanup() // Cleanup MQTT resources
+
+        // Cancel tất cả coroutine jobs
+        timeUpdateJob?.cancel() // Cancel time update job
+        blinkSecondJob?.cancel() // Cancel blink animation job
+        timerProgressUpdateJob?.cancel() // Cancel timer progress job
+
+        // Set binding null để tránh memory leak
+        _binding = null
     }
 }

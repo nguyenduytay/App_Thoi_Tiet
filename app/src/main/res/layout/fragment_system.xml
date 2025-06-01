@@ -219,7 +219,7 @@
                 app:layout_constraintStart_toEndOf="@+id/constraintLayout"
                 app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-            <com.example.weather2.View.ClockView
+            <com.example.weather2.Ui.Time.ClockView
                 android:id="@+id/customClock"
                 android:layout_width="90dp"
                 android:layout_height="90dp"

@@ -127,4 +127,19 @@ dependencies {
 
     implementation("com.google.firebase:firebase-messaging-ktx")
 
+    // Paho MQTT Android Service
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+
+    // Androidx LocalBroadcastManager (bắt buộc)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+    implementation("io.netty:netty-all:4.1.68.Final")
+    // Hỗ trợ SSL
+    implementation("org.conscrypt:conscrypt-android:2.5.2")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
 }

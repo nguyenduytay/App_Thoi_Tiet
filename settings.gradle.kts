@@ -17,6 +17,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://jitpack.io") // 🔥 Đảm bảo JitPack được khai báo trong repositories
+        maven("https://repo.eclipse.org/content/repositories/paho-releases/")// Repository cho Paho MQTT
     }
 }
 

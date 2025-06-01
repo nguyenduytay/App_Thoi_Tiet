@@ -8,7 +8,8 @@
     android:orientation="vertical">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:ignore="UselessParent">
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/main_body_view_pager2"
             android:layout_width="match_parent"
@@ -22,8 +23,8 @@
             android:layout_alignParentBottom="true"
             app:menu="@menu/menu_bottom_navigation"
             android:background="@color/color_menu"
-            app:itemTextColor="@color/custom_bottom_navigation"
-            app:itemIconTint="@color/custom_bottom_navigation" />
+            app:itemIconTint="@null"
+            app:itemTextColor="@null" />
     </RelativeLayout>
 
 </LinearLayout>

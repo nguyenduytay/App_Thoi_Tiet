@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".View.ChartFragment">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_menu">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/appbar_rounded_bottom_chart"
+            app:elevation="8dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                app:title="Biểu đồ hệ thống"
+                app:titleTextColor="@android:color/white" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/color_menu"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:ignore="MissingClass">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Thẻ biểu đồ gần đây -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/color_menu"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Trạng thái gần đây"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <!-- Rain Chart -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="16dp"
+                                    android:background="@drawable/border_textview"
+                                    app:cardBackgroundColor="#39428C"
+                                    app:strokeColor="#39428C"
+                                    app:strokeWidth="2dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        android:padding="16dp">
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="Trạng thái mưa"
+                                            android:textColor="@color/white"
+                                            android:textSize="16sp"
+                                            android:textStyle="bold" />
+
+                                        <com.github.mikephil.charting.charts.LineChart
+                                            android:id="@+id/rainChart"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="200dp"
+                                            android:layout_marginTop="8dp"
+                                            />
+                                    </LinearLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <!-- Pump Chart -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="16dp"
+                                    android:background="@drawable/border_textview"
+                                    app:cardBackgroundColor="#39428C"
+                                    app:strokeColor="#39428C"
+                                    app:strokeWidth="2dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        android:padding="16dp">
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="Hoạt động máy bơm"
+                                            android:textColor="@color/white"
+                                            android:textSize="16sp"
+                                            android:textStyle="bold" />
+
+                                        <com.github.mikephil.charting.charts.LineChart
+                                            android:id="@+id/pumpChart"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="200dp"
+                                            android:layout_marginTop="8dp" />
+                                    </LinearLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <androidx.cardview.widget.CardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="16dp"
+                                    android:background="@color/color_menu"
+                                    app:cardBackgroundColor="@color/color_menu"
+                                    app:cardCornerRadius="8dp"
+                                    app:cardElevation="4dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        android:background="#39428C"
+                                        android:padding="16dp">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginBottom="8dp"
+                                            android:orientation="horizontal">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="Bộ lọc dữ liệu"
+                                                android:textColor="@color/white"
+                                                android:textSize="16sp"
+                                                android:textStyle="bold" />
+
+                                            <View
+                                                android:layout_width="0dp"
+                                                android:layout_height="0dp"
+                                                android:layout_weight="1" />
+
+                                        </LinearLayout>
+
+                                        <com.google.android.material.card.MaterialCardView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:background="@color/white"
+                                            app:cardCornerRadius="8dp"
+                                            app:cardElevation="2dp">
+
+                                            <com.google.android.material.tabs.TabLayout
+                                                android:id="@+id/tabLayoutDateRange"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:background="@color/white"
+                                                app:tabIndicatorColor="#050505"
+                                                app:tabMode="scrollable"
+                                                app:tabTextColor="@color/black">
+
+                                                <com.google.android.material.tabs.TabItem
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="Hôm nay" />
+
+                                                <com.google.android.material.tabs.TabItem
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="Hôm qua" />
+
+                                                <com.google.android.material.tabs.TabItem
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="Tuần trước" />
+
+                                                <com.google.android.material.tabs.TabItem
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="Tùy chỉnh" />
+                                            </com.google.android.material.tabs.TabLayout>
+                                        </com.google.android.material.card.MaterialCardView>
+
+                                        <LinearLayout
+                                            android:id="@+id/layoutCustomDateRange"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="5dp"
+                                            android:layout_marginBottom="8dp"
+                                            android:orientation="vertical"
+                                            android:visibility="gone">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_gravity="center_vertical"
+                                                android:text="Khoảng thời gian"
+                                                android:textColor="@color/white" />
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="horizontal">
+
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_gravity="center_vertical"
+                                                    android:text="Bắt đầu"
+                                                    android:textColor="@color/white"
+                                                    android:textSize="14sp"/>
+                                                <Button
+                                                    android:id="@+id/buttonStartDate"
+                                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginEnd="8dp"
+                                                    android:text="10/05/2025"
+                                                    android:textColor="@color/white"
+                                                    android:textSize="12sp"/>
+
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_gravity="center_vertical"
+                                                    android:text="-" />
+
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_gravity="center_vertical"
+                                                    android:text="Kết thúc"
+                                                    android:textSize="14sp"
+                                                    android:textColor="@color/white"/>
+                                                <Button
+                                                    android:id="@+id/buttonEndDate"
+                                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginStart="8dp"
+                                                    android:textSize="12sp"
+                                                    android:text="17/05/2025"
+                                                    android:textColor="@color/white" />
+                                            </LinearLayout>
+
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            style="?android:attr/buttonBarStyle"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="10dp"
+                                            android:layout_marginBottom="8dp"
+                                            android:gravity="center"
+                                            android:orientation="horizontal">
+
+
+                                            <Button
+                                                android:id="@+id/btHumidityLandStatus"
+                                                style="?android:attr/buttonBarButtonStyle"
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginEnd="2dp"
+                                                android:layout_weight="1"
+                                                android:backgroundTint="#928282"
+                                                android:checked="true"
+                                                android:gravity="center"
+                                                android:padding="0dp"
+                                                android:text="Độ ẩm đất"
+                                                android:textColor="@color/black"
+                                                android:textSize="10sp"
+                                                tools:ignore="SmallSp" />
+
+                                            <Button
+                                                android:id="@+id/btHumidityStatus"
+                                                style="?android:attr/buttonBarButtonStyle"
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginLeft="2dp"
+                                                android:layout_marginRight="2dp"
+                                                android:layout_weight="1"
+                                                android:backgroundTint="#928282"
+                                                android:gravity="center"
+                                                android:padding="0dp"
+                                                android:text="Độ ẩm không khí"
+                                                android:textColor="@color/black"
+                                                android:textSize="10sp"
+                                                tools:ignore="SmallSp" />
+
+                                            <Button
+                                                android:id="@+id/btTempStatus"
+                                                style="?android:attr/buttonBarButtonStyle"
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginStart="2dp"
+                                                android:layout_weight="1"
+                                                android:backgroundTint="#928282"
+                                                android:gravity="center"
+                                                android:padding="0dp"
+                                                android:text="Nhiệt độ"
+                                                android:textColor="@color/black"
+                                                android:textSize="10sp"
+                                                tools:ignore="SmallSp" />
+                                        </LinearLayout>
+                                    </LinearLayout>
+                                </androidx.cardview.widget.CardView>
+
+                                <!-- Chọn chế độ hiển thị -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="16dp"
+                                    android:background="#EFEAEA"
+                                    app:cardCornerRadius="8dp"
+                                    app:cardElevation="2dp">
+
+                                    <com.google.android.material.tabs.TabLayout
+                                        android:id="@+id/tabLayoutDisplayMode"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:background="@color/white"
+                                        app:tabIndicatorColor="#050505"
+                                        app:tabTextColor="@color/black">
+
+                                        <com.google.android.material.tabs.TabItem
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Biểu đồ" />
+
+                                        <com.google.android.material.tabs.TabItem
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Bảng" />
+
+                                    </com.google.android.material.tabs.TabLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <!-- ViewFlipper để chuyển đổi giữa các chế độ hiển thị -->
+                                <ViewFlipper
+                                    android:id="@+id/viewFlipperDisplayMode"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="330dp"
+                                    android:layout_marginBottom="16dp"
+                                    android:background="#EFEAEA">
+
+                                    <!-- Chế độ Biểu đồ -->
+                                    <androidx.cardview.widget.CardView
+                                        android:id="@+id/cvChart"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:background="#EFEAEA"
+                                        app:cardBackgroundColor="#EFEAEA"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardElevation="4dp"
+                                        >
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:orientation="vertical"
+                                            android:padding="16dp">
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginBottom="8dp"
+                                                android:orientation="horizontal">
+
+                                                <TextView
+                                                    android:id="@+id/tvTitleChart"
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_weight="1"
+                                                    android:text="Lịch sử độ ẩm đất"
+                                                    android:textColor="@color/black"
+                                                    android:textSize="16sp"
+                                                    android:textStyle="bold" />
+                                            </LinearLayout>
+
+                                            <com.github.mikephil.charting.charts.LineChart
+                                                android:id="@+id/historyChart"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="250dp" />
+                                        </LinearLayout>
+                                    </androidx.cardview.widget.CardView>
+
+                                    <!-- Chế độ Bảng -->
+                                    <androidx.cardview.widget.CardView
+                                        android:id="@+id/cvTable"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:background="#EFEAEA"
+                                        app:cardBackgroundColor="#EFEAEA"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardElevation="4dp"
+                                        android:visibility="visible">
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent"
+                                            android:orientation="vertical"
+                                            android:padding="16dp">
+
+                                            <TextView
+                                                android:id="@+id/tvTitalTable"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginBottom="8dp"
+                                                android:text="Dữ liệu chi tiết"
+                                                android:textColor="@color/black"
+                                                android:textSize="16sp"
+                                                android:textStyle="bold" />
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:background="@color/white"
+                                                android:orientation="horizontal"
+                                                android:padding="8dp">
+
+                                                <TextView
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_weight="1.5"
+                                                    android:text="Thời gian"
+                                                    android:textColor="@color/black"
+                                                    android:textStyle="bold" />
+
+                                                <TextView
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_weight="1"
+                                                    android:text="Giá trị"
+                                                    android:textColor="@color/black"
+                                                    android:textStyle="bold" />
+
+                                                <TextView
+                                                    android:layout_width="0dp"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_weight="1"
+                                                    android:text="Trạng thái"
+                                                    android:textColor="@color/black"
+                                                    android:textStyle="bold" />
+                                            </LinearLayout>
+
+                                            <androidx.recyclerview.widget.RecyclerView
+                                                android:id="@+id/rcDataTable"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="250dp"
+                                                android:paddingBottom="20dp"/>
+                                        </LinearLayout>
+                                    </androidx.cardview.widget.CardView>
+                                </ViewFlipper>
+                                <!-- Nút xuất dữ liệu và phân tích -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <Button
+                                        android:id="@+id/btDelete"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="8dp"
+                                        android:layout_weight="1"
+                                        android:backgroundTint="#C11616"
+                                        android:text="Xóa dữ liệu"
+                                        android:textColor="@color/white" />
+
+                                    <Button
+                                        android:id="@+id/btExportExcel"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:backgroundTint="#1AAB29"
+                                        android:text="Xuất file excel"
+                                        android:textColor="@color/white" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </ScrollView>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>

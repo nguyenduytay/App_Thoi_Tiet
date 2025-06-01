@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_weather"
-        android:icon="@drawable/weather"
-        android:title="@string/menu_weather"
+        android:icon="@mipmap/cloudy_weather_foreground"
+        android:title=""
+        app:iconTint="@null"
         />
     <item
         android:id="@+id/menu_system"
-        android:icon="@drawable/home"
-        android:title="@string/menu_home"
+        android:icon="@mipmap/home_weather_foreground"
+        android:title=""
+        app:iconTint="@null"
+        />
+    <item
+        android:id="@+id/menu_chart"
+        android:icon="@mipmap/chart_weather_foreground"
+        android:title=""
+        app:iconTint="@null"
         />
     <item
         android:id="@+id/menu_setting"
-        android:icon="@drawable/setting"
-        android:title="@string/menu_setting" />
+        android:icon="@mipmap/system_weather_foreground"
+        android:title=""
+        app:iconTint="@null" />
 </menu>

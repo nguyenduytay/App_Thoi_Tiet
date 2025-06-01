@@ -2,53 +2,70 @@ package com.example.weather2.ViewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.weather2.Database.AppDatabase
-import com.example.weather2.Model.Entity.Weather7d
+import com.example.weather2.Model.Entity.E_Weather7dFirebase
 import com.example.weather2.Repository.Weather7dRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class Weather7dViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: Weather7dRepository
-    private val _allWeather7d = MutableLiveData<List<Weather7d>>()
+
+    private val repository = Weather7dRepository()
+
+    private val _weather7dData = MutableStateFlow<Map<String, E_Weather7dFirebase>>(emptyMap())
+    val weather7dData: StateFlow<Map<String, E_Weather7dFirebase>> = _weather7dData.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess: StateFlow<Boolean> = _updateSuccess.asStateFlow()
 
     init {
-        val weather7dDao = AppDatabase.getDatabase(application).weather7dDao()
-        repository = Weather7dRepository(weather7dDao)
-        fetchAllWeather7d()
+        observe7DayWeatherData()
     }
 
-    private fun fetchAllWeather7d() {
+    fun observe7DayWeatherData() {
         viewModelScope.launch {
-            val weather7ds = repository.getAllWeather24h()
-            _allWeather7d.postValue(weather7ds)
+            _isLoading.value = true
+            try {
+                repository.get7DayWeatherData().collect { weatherData ->
+                    _weather7dData.value = weatherData
+                    _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+                _isLoading.value = false
+            }
         }
     }
 
-    fun insert(weather7d: Weather7d) {
+    fun update7DayWeatherData(weatherMap: Map<String, E_Weather7dFirebase>) {
         viewModelScope.launch {
-            repository.insertWeather24h(weather7d)
-            fetchAllWeather7d()
+            _isLoading.value = true
+            repository.update7DayWeatherData(weatherMap).fold(
+                onSuccess = {
+                    _updateSuccess.value = true
+                    _isLoading.value = false
+                },
+                onFailure = { exception ->
+                    _error.value = exception.message
+                    _isLoading.value = false
+                }
+            )
         }
     }
 
-    fun updateWeather(weather7d: Weather7d) {
-        viewModelScope.launch {
-            repository.updateWeather24h(weather7d)
-            fetchAllWeather7d()
-        }
+    fun clearError() {
+        _error.value = null
     }
 
-    suspend fun getAllWeather7d(): List<Weather7d> {
-        return repository.getAllWeather24h()
-    }
-
-    fun refreshWeather7dData(newWeatherList: List<Weather7d>) {
-        viewModelScope.launch {
-            repository.deleteAllWeather7d()
-            newWeatherList.forEach { repository.insertWeather24h(it) }
-            fetchAllWeather7d()
-        }
+    fun clearUpdateSuccess() {
+        _updateSuccess.value = false
     }
 }
