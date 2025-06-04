@@ -94,7 +94,6 @@ class SettingFragment : Fragment() {
     private fun setupObservers() {
         observeNotificationConfig() // Lắng nghe notification config
         observeWarningConfig() // Lắng nghe warning config
-        observeLoadingStates() // Lắng nghe trạng thái loading
         observeErrors() // Lắng nghe và xử lý lỗi
         observeUpdateSuccess() // Lắng nghe thông báo cập nhật thành công
     }
@@ -128,30 +127,6 @@ class SettingFragment : Fragment() {
             }
         }
     }
-
-    /**
-     * Observer trạng thái loading từ ViewModels
-     */
-    private fun observeLoadingStates() {
-        // Observer loading từ NotificationViewModel
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                notificationViewModel.isLoading.collect { isLoading ->
-                    updateLoadingState(isLoading, "notification") // Update loading cho notification section
-                }
-            }
-        }
-
-        // Observer loading từ WarningViewModel
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                warningViewModel.isLoading.collect { isLoading ->
-                    updateLoadingState(isLoading, "warning") // Update loading cho warning section
-                }
-            }
-        }
-    }
-
     /**
      * Observer lỗi từ ViewModels
      */
@@ -310,19 +285,6 @@ class SettingFragment : Fragment() {
             isUpdatingFromViewModel = false // Reset flag
         }
     }
-
-    /**
-     * Cập nhật trạng thái loading
-     */
-    private fun updateLoadingState(isLoading: Boolean, section: String) {
-        // Có thể disable/enable controls hoặc hiển thị progress indicator
-        val alpha = if (isLoading) 0.5f else 1.0f
-        when (section) {
-            "notification" -> bindingNotificationSetting.root.alpha = alpha
-            "warning" -> bindingWarningSetting.root.alpha = alpha
-        }
-    }
-
     /**
      * Hiển thị thông báo lỗi cho user
      */

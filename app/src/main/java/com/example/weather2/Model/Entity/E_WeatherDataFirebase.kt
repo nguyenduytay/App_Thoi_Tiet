@@ -1,5 +1,6 @@
 package com.example.weather2.Model.Entity
 
+// dữ liệu hiển thị thời tiết
 data class E_WeatherDataFirebase(
     var humidity: Double = 0.0,
     var humidityLand: Double = 0.0,

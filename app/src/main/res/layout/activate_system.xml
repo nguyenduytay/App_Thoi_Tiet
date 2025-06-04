@@ -16,6 +16,100 @@
         android:layout_marginRight="10dp"
         android:background="@drawable/border_textview"
         android:backgroundTint="#39428C"
+        android:padding="5dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            tools:ignore="Suspicious0dp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:src="@mipmap/rain_foreground">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tv_rain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Không mưa"
+                android:shadowColor="#000000"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:shadowRadius="6"
+                android:textColor="#FAF9F9"
+                android:textSize="13sp"
+                android:textStyle="bold">
+            </TextView>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:src="@mipmap/pressure_foreground">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tv_pressure"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Áp suất : 100.4 kpa"
+                android:shadowColor="#000000"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:shadowRadius="6"
+                android:textColor="#FAF9F9"
+                android:textSize="13sp"
+                android:textStyle="bold">
+            </TextView>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:src="@mipmap/sun_foreground">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tv_sun"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Nắng gắt"
+                android:shadowColor="#000000"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:shadowRadius="6"
+                android:textColor="#FAF9F9"
+                android:textSize="13sp"
+                android:textStyle="bold">
+            </TextView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/border_textview"
+        android:backgroundTint="#39428C"
         android:orientation="horizontal">
 
         <ImageView
@@ -37,10 +131,10 @@
             android:shadowDx="3"
             android:shadowDy="3"
             android:shadowRadius="6"
-            android:text="Tưới nước"
             android:textColor="#FAF9F9"
             android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:text="Tưới nước"/>
 
         <Switch
             android:id="@+id/sw_water_system"
@@ -64,7 +158,6 @@
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
         android:background="@drawable/border_textview"
         android:backgroundTint="#39428C"
         android:orientation="horizontal">
@@ -112,7 +205,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:layout_marginRight="10dp"
         android:background="@drawable/border_textview"
         android:backgroundTint="#39428C"

@@ -62,9 +62,6 @@
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
-                        <ScrollView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -246,7 +243,7 @@
                                                     android:layout_marginEnd="8dp"
                                                     android:text="10/05/2025"
                                                     android:textColor="@color/white"
-                                                    android:textSize="12sp"/>
+                                                    android:textSize="10sp"/>
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
@@ -267,7 +264,7 @@
                                                     android:layout_width="wrap_content"
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginStart="8dp"
-                                                    android:textSize="12sp"
+                                                    android:textSize="10sp"
                                                     android:text="17/05/2025"
                                                     android:textColor="@color/white" />
                                             </LinearLayout>
@@ -475,7 +472,7 @@
                                             <androidx.recyclerview.widget.RecyclerView
                                                 android:id="@+id/rcDataTable"
                                                 android:layout_width="match_parent"
-                                                android:layout_height="250dp"
+                                                android:layout_height="match_parent"
                                                 android:paddingBottom="20dp"/>
                                         </LinearLayout>
                                     </androidx.cardview.widget.CardView>
@@ -506,7 +503,6 @@
                                         android:textColor="@color/white" />
                                 </LinearLayout>
                             </LinearLayout>
-                        </ScrollView>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 

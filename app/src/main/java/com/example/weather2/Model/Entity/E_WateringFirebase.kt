@@ -1,5 +1,6 @@
 package com.example.weather2.Model.Entity
 
+// dữ liệu hẹn giờ tưới nước và ngưỡng tưới nước
 data class E_WateringFirebase(
     var status_timer: Int? = null,
     var timer_start: Int? = null,

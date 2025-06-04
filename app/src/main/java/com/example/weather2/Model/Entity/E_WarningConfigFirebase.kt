@@ -1,5 +1,6 @@
 package com.example.weather2.Model.Entity
 
+// dữ liệu cảnh báo về máy
 data class E_WarningConfigFirebase(
     var fcmToken: String = "chLTIif6QGK0abHUAh9j58:APA91bGDRDjXkniyCxRxDMvAHlKmz9k6xBVpCP7mEpQ3HAgC9tvqTHEJfLRTHmiKDJVUo5LEf1FFUhABpQ75C9cCWAnTyo-g80QjqaEe_paCmKI9zhNU3vI",
     var status : Int =0,

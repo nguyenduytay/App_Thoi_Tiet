@@ -21,6 +21,8 @@ import com.example.weather2.Model.ItemAdapter.Weather7dData
 import com.example.weather2.R
 import com.example.weather2.Adapter.Weather24hAdapter
 import com.example.weather2.Adapter.Weather7dAdapter
+import com.example.weather2.Model.Entity.E_Weather24hFirebase
+import com.example.weather2.Model.Entity.E_Weather7dFirebase
 import com.example.weather2.ViewModel.WeatherDataViewModel
 import com.example.weather2.ViewModel.Weather24hViewModel
 import com.example.weather2.ViewModel.Weather7dViewModel
@@ -224,15 +226,15 @@ class WeatherFragment : Fragment() {
     @SuppressLint("SetTextI18n") // Suppress warning về hardcoded string
     private fun updateCurrentWeatherUI(weatherData: com.example.weather2.Model.Entity.E_WeatherDataFirebase) {
         val currentTime = getCurrentTime() // Lấy thời gian hiện tại
-        val rainProbability = weatherData.rain ?: 0 // Lấy xác suất mưa, default 0 nếu null
+        val rainProbability = if(weatherData.rain > 3000 ) 0 else 100 // Lấy xác suất mưa, default 0 nếu null
 
         // Cập nhật TextView nhiệt độ, sử dụng Elvis operator để handle null
-        binding.tvTempHourLive.text = weatherData.temperature?.let {
+        binding.tvTempHourLive.text = weatherData.temperature.let {
             roundNumber(it).toString() + " ℃" // Format nhiệt độ với đơn vị
         } ?: "-- ℃" // Hiển thị placeholder nếu null
 
         // Cập nhật TextView độ ẩm, sử dụng Elvis operator để handle null
-        binding.tvHumidyHourLive1.text = weatherData.humidity?.let {
+        binding.tvHumidyHourLive1.text = weatherData.humidity.let {
             roundNumber(it).toString() + " %" // Format độ ẩm với đơn vị
         } ?: "-- %" // Hiển thị placeholder nếu null
 
@@ -244,19 +246,17 @@ class WeatherFragment : Fragment() {
     /**
      * Cập nhật UI RecyclerView hiển thị dự báo 24 giờ
      */
-    private fun update24HourWeatherUI(weatherMap: Map<String, com.example.weather2.Model.Entity.E_Weather24hFirebase>) {
+    private fun update24HourWeatherUI(weatherMap: Map<String,E_Weather24hFirebase>) {
         // Transform Map thành List các Weather24hData objects
         val weatherList = weatherMap.entries.map { entry -> // Map each entry
             val time = extractHourMinute(entry.key) // Extract giờ:phút từ datetime string
             val weatherData = entry.value // Lấy weather data
-            val rainProbability = calculateRainProbability(weatherData.rain) // Tính xác suất mưa
-
             // Tạo Weather24hData object cho adapter
             Weather24hData(
                 time = time, // Thời gian đã format
                 temperature = roundNumber(weatherData.temp), // Nhiệt độ đã làm tròn
-                rainProbability = rainProbability, // Xác suất mưa đã tính
-                icon = getWeatherIcon(time, rainProbability) // Icon phù hợp
+                rainProbability =  weatherData.rain.toInt(), // Xác suất mưa đã tính
+                icon = getWeatherIcon(time,  weatherData.rain.toInt()) // Icon phù hợp
             )
         }.sortedBy { // Sort list theo thời gian
             val timeParts = it.time.split(":") // Split "HH:mm" thành ["HH", "mm"]
@@ -271,21 +271,20 @@ class WeatherFragment : Fragment() {
      * Cập nhật UI RecyclerView hiển thị dự báo 7 ngày
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun update7DayWeatherUI(weatherMap: Map<String, com.example.weather2.Model.Entity.E_Weather7dFirebase>) {
+    private fun update7DayWeatherUI(weatherMap: Map<String, E_Weather7dFirebase>) {
         // Transform Map thành List các Weather7dData objects
         val weatherList = weatherMap.entries.map { entry -> // Map each entry
             val dayName = extractDayOfWeekInVietnamese(entry.key) // Convert date thành tên thứ tiếng Việt
             val weatherData = entry.value // Lấy weather data
-            val rainProbability = calculateRainProbability(weatherData.rain) // Tính xác suất mưa
 
             // Tạo Weather7dData object cho adapter
             Weather7dData(
                 time = dayName, // Tên thứ bằng tiếng Việt
                 temperatureMax = roundNumber(weatherData.temp_max), // Nhiệt độ max đã làm tròn
                 temperatureMin = roundNumber(weatherData.temp_min), // Nhiệt độ min đã làm tròn
-                rainProbability = rainProbability, // Xác suất mưa
-                icon_morning = getWeatherIcon("6:00", rainProbability), // Icon buổi sáng
-                icon_evening = getWeatherIcon("22:00", rainProbability) // Icon buổi tối
+                rainProbability = weatherData.rain.toInt(), // Xác suất mưa
+                icon_morning = getWeatherIcon("6:00",  weatherData.rain.toInt()), // Icon buổi sáng
+                icon_evening = getWeatherIcon("22:00",  weatherData.rain.toInt()) // Icon buổi tối
             )
         }.sortedBy { entry -> // Sort list theo ngày
             try {
@@ -414,7 +413,7 @@ class WeatherFragment : Fragment() {
 
         // Return icon resource dựa trên xác suất mưa và thời gian
         return when {
-            rainProbability > 60 -> R.mipmap.rain // Mưa nặng
+            rainProbability > 60 -> R.mipmap.rain_foreground // Mưa nặng
             rainProbability > 40 -> {
                 // Mưa vừa - khác icon cho ngày/đêm
                 if (isDayTime) R.mipmap.sunny_rain else R.mipmap.nigh_rain
@@ -429,40 +428,6 @@ class WeatherFragment : Fragment() {
             }
         }
     }
-
-    /**
-     * Tính xác suất mưa từ giá trị rain
-     */
-    fun calculateRainProbability(rainValue: Double): Int {
-        // Return percentage dựa trên thresholds khác nhau
-        return when {
-            rainValue < 0.005 -> 1   // Rất ít
-            rainValue < 0.01 -> 2    // Ít
-            rainValue < 0.05 -> 5    // Nhẹ
-            rainValue < 0.1 -> 10    // Vừa phải
-            rainValue < 0.25 -> 40   // Trung bình
-            rainValue < 0.5 -> 80    // Cao
-            else -> 100              // Rất cao
-        }
-    }
-
-    /**
-     * Tính điểm sương từ nhiệt độ và độ ẩm tương đối
-     */
-    private fun calculateDewPoint(t2m: Double, relativeHumidity: Double): Double {
-        val a = 17.27  // Hằng số Magnus
-        val b = 237.7  // Hằng số Magnus
-        val rh = relativeHumidity / 100.0 // Convert percentage thành decimal
-        // Tính alpha theo công thức Magnus
-        val alpha = ((a * t2m) / (b + t2m)) + Math.log(rh)
-        // Tính và return dew point
-        return (b * alpha) / (a - alpha)
-    }
-
-    /**
-     * Trả về giá trị lớn hơn giữa hai số
-     */
-    private fun max(a: Double, b: Double): Double = if (a > b) a else b
 
     /**
      * Tính thời gian mặt trời mọc và mặt trời lặn

@@ -82,6 +82,14 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
     private var mqttCommandTime = 0L
     private val MQTT_DELAY = 1000L
 
+    // ✅ Thêm các flag control
+    private var isUIUpdating = false
+    private var isListenersEnabled = true // ← QUAN TRỌNG: Control listeners
+
+    // ✅ Debounce job cho UI updates
+    private var uiUpdateJob: Job? = null
+    private val UI_UPDATE_DELAY = 150L
+
     /**
      * Khởi tạo giao diện và thiết lập các thành phần
      * Được gọi khi fragment được tạo và hiển thị lên màn hình
@@ -133,7 +141,6 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
     private fun setupObservers() {
         observeWeatherData() // Lắng nghe dữ liệu thời tiết
         observeWateringData() // Lắng nghe dữ liệu tưới nước
-        observeLoadingStates() // Lắng nghe trạng thái loading
         observeErrors() // Lắng nghe và xử lý lỗi
         observeUpdateSuccess() // Lắng nghe thông báo cập nhật thành công
     }
@@ -163,20 +170,6 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
                     wateringData?.let { data -> // Nếu data không null
                         updateWateringUI(data) // Cập nhật UI với dữ liệu tưới nước
                     }
-                }
-            }
-        }
-    }
-
-    /**
-     * Observer trạng thái loading từ ViewModels
-     */
-    private fun observeLoadingStates() {
-        viewLifecycleOwner.lifecycleScope.launch { // Launch coroutine tied to view lifecycle
-            repeatOnLifecycle(Lifecycle.State.STARTED) { // Chỉ observe khi Fragment active
-                wateringViewModel.isLoading.collect { isLoading -> // Collect loading state
-                    // Có thể hiển thị progress bar hoặc disable controls khi đang loading
-                    updateLoadingState(isLoading)
                 }
             }
         }
@@ -258,11 +251,11 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
         try {
             // Cập nhật TextView hiển thị nhiệt độ với null safety
             bindingParameterSystem.tvTempParameterSystem.text =
-                weatherData.temperature?.toString()?.plus(" ℃") ?: "N/A"
+                weatherData.temperature.toString().plus(" ℃") ?: "N/A"
 
             // Cập nhật TextView hiển thị độ ẩm không khí với null safety
             bindingParameterSystem.tvHumidityAirParameterSystem.text =
-                weatherData.humidity?.toString()?.plus(" %") ?: "N/A"
+                weatherData.humidity.toString().plus(" %") ?: "N/A"
 
             // Cập nhật TextView hiển thị độ ẩm đất với null safety
             bindingParameterSystem.tvHumidityLandParameterSystem.text =
@@ -270,15 +263,21 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
 
             // Cập nhật SeekBar nhiệt độ (adjust range để hiển thị đúng)
             bindingParameterSystem.sbTempParameterSystem.progress =
-                (weatherData.temperature?.roundToInt()?.plus(25)) ?: 0
+                (weatherData.temperature.roundToInt().plus(25)) ?: 0
 
             // Cập nhật SeekBar độ ẩm không khí
             bindingParameterSystem.sbHumidityAirParameterSystem.progress =
-                weatherData.humidity?.roundToInt() ?: 0
+                weatherData.humidity.roundToInt() ?: 0
 
             // Cập nhật SeekBar độ ẩm đất
             bindingParameterSystem.sbHumidityLandParameterSystem.progress =
-                weatherData.humidityLand?.roundToInt() ?: 0
+                weatherData.humidityLand.roundToInt() ?: 0
+
+
+            //thiết lập mưa, áp suất, nắng
+            bindingActivateSystem.tvRain.text =if(weatherData.rain > 3000) "Không mưa" else "Mưa"
+            bindingActivateSystem.tvPressure.text = (weatherData.pressure).toInt().toString() + " hPa"
+            bindingActivateSystem.tvSun.text = if((weatherData.light > 3500)) "Ánh sáng yếu" else if(weatherData.light > 1500) "Ánh sáng vừa" else "Ánh sáng mạnh"
 
             isUpdatingFromViewModel = true
 
@@ -291,7 +290,6 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
             bindingActivateSystem.btUpdateHumidityLand.isEnabled = weatherData.auto_mode
 
             isUpdatingFromViewModel = false
-
 
 
         } catch (e: Exception) {
@@ -348,19 +346,20 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
             bindingActivateSystem.npHumidityMaxLandSystem.minValue = defaultMin + 1
 
             //chế độ tự động tưới
-            bindingActivateSystem.btUpdateHumidityLand.setOnClickListener{
+            bindingActivateSystem.btUpdateHumidityLand.setOnClickListener {
                 val humidityLandMin = bindingActivateSystem.npHumidityMinLandSystem.value
                 val humidityLandMax = bindingActivateSystem.npHumidityMaxLandSystem.value
                 setHumidityLandMinWatering(humidityLandMin)
                 setHumidityLandMaxWatering(humidityLandMax)
-                wateringViewModel.updateField("humidity_land_max",humidityLandMax)
-                wateringViewModel.updateField("humidity_land_min",humidityLandMin)
+                wateringViewModel.updateField("humidity_land_max", humidityLandMax)
+                wateringViewModel.updateField("humidity_land_min", humidityLandMin)
                 Toast.makeText(
                     context,
                     "Đã thiết lập mức độ ẩm đất ",
                     Toast.LENGTH_SHORT
                 ).show()
             }
+
 
             // Cập nhật switch hẹn giờ và enable/disable các controls liên quan
             val isTimerEnabled = wateringData.status_timer == 1
@@ -384,16 +383,6 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
         } finally {
             isUpdatingFromViewModel = false // Reset flag sau khi cập nhật xong
         }
-    }
-
-    /**
-     * Cập nhật trạng thái loading
-     */
-    private fun updateLoadingState(isLoading: Boolean) {
-        // Có thể disable/enable các controls khi đang loading
-        // Hoặc hiển thị progress indicator
-        val alpha = if (isLoading) 0.5f else 1.0f
-        bindingActivateSystem.root.alpha = alpha
     }
 
     /**
@@ -812,6 +801,11 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
                 bindingActivateSystem.swWaterSystem.isChecked = false
                 bindingActivateSystem.swWaterSystem.isClickable = false
                 bindingActivateSystem.swWaterSystem.isFocusable = false
+                // tắt chế độ hẹn giờ tưới nước nếu bật
+                bindingActivateSystem.swTimeTimerSystem.isChecked = false
+                bindingActivateSystem.swTimeTimerSystem.isClickable = false
+                bindingActivateSystem.swTimeTimerSystem.isFocusable = false
+                wateringViewModel.updateField("status_timer", 0)
 
             } else {
                 //bật lại chế độ điều khiển thủ công
@@ -820,25 +814,26 @@ class SystemFragment : Fragment(), MqttHandler.MqttCallback {
                 //bạt lại chế độ điêu fkhirrnt máy bơm thủ công
                 bindingActivateSystem.swWaterSystem.isClickable = true
                 bindingActivateSystem.swWaterSystem.isFocusable = true
+                // bật lại chế độ hẹn giờ tưới nước
+                bindingActivateSystem.swTimeTimerSystem.isClickable = true
+                bindingActivateSystem.swTimeTimerSystem.isFocusable = true
+
             }
         }
 
         // Set click listener cho switch tưới nước thủ công
         bindingActivateSystem.swWaterSystem.setOnCheckedChangeListener { _, checked ->
             if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
-                wateringViewModel.setWateringStatus(if (checked) 1 else 0) // Update ViewModel
                 if (checked) openWatering() else closeWatering() // Send MQTT command
             }
         }
 
         // Set click listener cho switch hẹn giờ
-        bindingActivateSystem.swTimeTimerSystem.setOnCheckedChangeListener { _, checked ->
-            if (!isUpdatingFromViewModel) { // Chỉ update nếu không phải từ ViewModel
-                wateringViewModel.updateField(
-                    "status_timer",
-                    if (checked) 1 else 0
-                ) // Update ViewModel
+        bindingActivateSystem.swTimeTimerSystem.setOnClickListener  {
+            val checked = bindingActivateSystem.swTimeTimerSystem.isChecked
+            if (!isUpdatingFromViewModel ) { // Chỉ update nếu không phải từ ViewModel
 
+                wateringViewModel.updateField("status_timer", if (checked) 1 else 0)
                 // Enable/disable related controls
                 bindingActivateSystem.btTimerStartSystem.isEnabled = checked
                 bindingActivateSystem.btTimerEndSystem.isEnabled = checked
